@@ -73,7 +73,31 @@ window.SITE_DATA = {
               "color": "blue",
               "reviewTitle": "SPARK Level 3",
               "docUrl": "",
-              "topics": []
+              "topics": [
+                {
+                  "title": "Chủ đề 1: Cơ bản về công nghệ",
+                  "lessons": [
+                    {
+                      "nums": "1",
+                      "name": "Ứng dụng công nghệ đa dạng",
+                      "lessonUrl": "flashcard.html?d=splv3_1",
+                      "reviewUrl": "quiz.html?q=splv3_1"
+                    },
+                    {
+                      "nums": "2 + 3",
+                      "name": "Lưu trữ thông tin + Máy học",
+                      "lessonUrl": "flashcard.html?d=splv3_23",
+                      "reviewUrl": "quiz.html?q=splv3_23"
+                    },
+                    {
+                      "nums": "4",
+                      "name": "Mạng máy tính",
+                      "lessonUrl": "",
+                      "reviewUrl": ""
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }

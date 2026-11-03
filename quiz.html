@@ -198,7 +198,7 @@ function show(rv){
     if(q.type==='single'||q.type==='multi')b+=(q.type==='multi'?'<p class="hint">Chọn nhiều đáp án</p>':'')+`<div class="opts${q.options.some(o=>img(O(o).img))?' imgs':''}">${q.options.map((o,k)=>{o=O(o);const u=img(o.img);return `<button class="opt${u?' pic':''}" data-k="${k}"><span class="mkr${q.type==='multi'?' sq':''}"></span>${u?`<img src="${u}" alt="${esc(o.alt||'')}">`:''}${o.text?`<span class="tx">${esc(o.text)}</span>`:''}<span class="rs"></span></button>`}).join('')}</div>`;
     else if(q.type==='sort')b+='<p class="hint">Bấm chọn 1 thẻ rồi bấm vào khung nhóm để xếp vào, hoặc kéo-thả thẻ vào khung. Bấm vào thẻ đã xếp để đưa nó trở lại.</p><div class="sx"></div>';
     else if(isConn(q))b+='<p class="hint">Bấm chọn 1 mục bên trái rồi bấm mục tương ứng bên phải để nối.</p><div class="cn"></div>';
-    else if(q.type==='match'){const vs=[...new Set(q.pairs.map(x=>x[1]))].sort();
+    else if(q.type==='match'){const vs=Array.isArray(q.choices)&&q.choices.length?[...new Set([...q.choices,...q.pairs.map(x=>x[1])])]:[...new Set(q.pairs.map(x=>x[1]))].sort();
       b+=`<div>${q.pairs.map((p,k)=>`<div class="mrow"><span class="tx">${esc(p[0])}</span><div class="mr"><select data-k="${k}"><option value="">-- Lựa chọn đáp án --</option>${vs.map(v=>`<option>${esc(v)}</option>`).join('')}</select></div></div>`).join('')}</div>`}
     else b+='<p class="hint">Chạm vào chữ rồi chạm vào ô, hoặc kéo thả</p><div class="dq"></div>';
   }
@@ -236,10 +236,11 @@ function fbox(q,a){
 
 const chip=v=>`<span class="chip${sel===v?' sel':''}" draggable="true" data-v="${esc(v)}">${esc(v)}</span>`;
 function drawDrag(){
-  const q=Q[i],bank=q.pairs.map(x=>x[1]).filter(x=>!P.includes(x)).sort();
+  const q=Q[i],bank=[],cnt={};q.pairs.forEach(x=>cnt[x[1]]=(cnt[x[1]]||0)+1);P.forEach(x=>{if(x)cnt[x]--});Object.keys(cnt).forEach(v=>{for(let n=0;n<cnt[v];n++)bank.push(v)});bank.sort();
   $('.dq').innerHTML=q.pairs.map((x,k)=>`<div class="row"><span class="lf">${esc(x[0])}</span>→<span class="slot" data-k="${k}">${P[k]?chip(P[k]):''}</span></div>`).join('')+`<div class="bank">${bank.map(v=>chip(v)).join('')}</div>`;
 }
-function put(k,v){if(locked)return;const o=P.indexOf(v);if(o>-1)P[o]=null;P[k]=v;sel=null;drawDrag()}
+let DSRC=-1;
+function put(k,v,src=-1){if(locked)return;const q=Q[i],tot=q.pairs.filter(x=>x[1]===v).length,used=P.filter(x=>x===v).length;if(src<0&&P[k]!==v&&used>=tot)return;if(src>-1)P[src]=null;P[k]=v;sel=null;drawDrag()}
 document.addEventListener('click',e=>{
   if(locked||!Q||!$('.dq'))return;
   const c=e.target.closest('.chip'),s=e.target.closest('.slot');if(!c&&!s)return;
@@ -247,9 +248,9 @@ document.addEventListener('click',e=>{
   if(c&&s){P[+s.dataset.k]=null;sel=null}else if(c)sel=sel===c.dataset.v?null:c.dataset.v;
   drawDrag();
 });
-document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.chip');if(c)e.dataTransfer.setData('text/plain',c.dataset.v)});
+document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.chip');if(c){const sl=c.closest('.slot');DSRC=sl?+sl.dataset.k:-1;e.dataTransfer.setData('text/plain',c.dataset.v)}});
 document.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('.slot'))e.preventDefault()});
-document.addEventListener('drop',e=>{const s=e.target.closest&&e.target.closest('.slot');if(!s)return;e.preventDefault();put(+s.dataset.k,e.dataTransfer.getData('text/plain'))});
+document.addEventListener('drop',e=>{const s=e.target.closest&&e.target.closest('.slot');if(!s)return;e.preventDefault();const src=DSRC;DSRC=-1;put(+s.dataset.k,e.dataTransfer.getData('text/plain'),src)});
 document.addEventListener('keydown',e=>{
   if(!Q||fin||e.repeat||!$('#ok'))return;
   if(e.key==='Enter'){e.preventDefault();$('#ok').click();return}
