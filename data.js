@@ -92,8 +92,8 @@ window.SITE_DATA = {
                     {
                       "nums": "4",
                       "name": "Mạng máy tính",
-                      "lessonUrl": "",
-                      "reviewUrl": ""
+                      "lessonUrl": "flashcard.html?d=splv3_4",
+                      "reviewUrl": "flashcard.html?d=splv3_4"
                     }
                   ]
                 }
