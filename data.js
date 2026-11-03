@@ -58,10 +58,10 @@ window.SITE_DATA = {
                   "title": "",
                   "lessons": [
                     {
-                      "nums": "1",
-                      "name": "Bài ôn 1",
+                      "nums": "1 + 2",
+                      "name": "Hệ điều hành và các hệ điều hành thông dụng",
                       "lessonUrl": "",
-                      "reviewUrl": "https://nguyenvi090902.github.io/ic3/quiz.html?q=splv2_123"
+                      "reviewUrl": "quiz.html?q=splv2_123"
                     }
                   ]
                 }
@@ -93,7 +93,7 @@ window.SITE_DATA = {
                       "nums": "4",
                       "name": "Mạng máy tính",
                       "lessonUrl": "flashcard.html?d=splv3_4",
-                      "reviewUrl": "flashcard.html?d=splv3_4"
+                      "reviewUrl": "quiz.html?q=splv3_4"
                     }
                   ]
                 }

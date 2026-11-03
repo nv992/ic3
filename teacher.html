@@ -217,7 +217,8 @@ async function vCls(){
   const {data}=await sb.from('classes').select('id,school,name,code,students(count)').order('school').order('name');
   $('#body').innerHTML=`<div class="c"><h3>Thêm danh sách học sinh</h3><p>Dán từ Excel, mỗi dòng: <code>Trường, Lớp, Họ tên</code>. Nhập lại tên đã có sẽ được bỏ qua.</p>
     <textarea id="ro" rows="8" placeholder="Tiểu học A	3A	Nguyễn Văn An"></textarea><button id="imp">Nhập</button> <span id="m" class="bad"></span></div>
-    <div class="c"><table><tr><th>Trường<th>Lớp<th>Mã lớp (đưa cho học sinh)<th>Số HS<th></tr>${(data||[]).map(c=>`<tr><td>${esc(c.school)}<td>${esc(c.name)}<td><b>${c.code}</b><td>${c.students[0].count}<td><button class="g" data-del="${c.id}">Xóa</button></tr>`).join('')}</table></div>`;
+    <div class="c"><table><tr><th>Trường<th>Lớp<th>Mã lớp (đưa cho học sinh)<th>Số HS<th></tr>${(data||[]).map(c=>`<tr><td>${esc(c.school)}<td>${esc(c.name)}<td><b>${c.code}</b><td>${c.students[0].count}<td><button data-st="${c.id}">👥 Quản lý HS</button><button class="g" data-del="${c.id}">Xóa lớp</button></tr>`).join('')}</table></div>`;
+  document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>vStu(b.dataset.st));
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Xóa lớp và học sinh trong lớp?')){await sb.from('classes').delete().eq('id',b.dataset.del);vCls()}});
   $('#imp').onclick=async()=>{
     const L=$('#ro').value.split('\n').map(l=>l.split(/\t|,/).map(x=>x.trim())).filter(r=>r.length>=3&&r[0]&&r[1]&&r[2]),
@@ -231,6 +232,71 @@ async function vCls(){
     }
     vCls();
   };
+}
+
+// ---------- Quản lý học sinh của 1 lớp: thêm / xóa ----------
+async function vStu(cid){
+  const [{data:c},{data:S,error:e0}]=await Promise.all([
+    sb.from('classes').select('id,school,name,code').eq('id',cid).single(),
+    sb.from('students').select('id,name').eq('class_id',cid)]);
+  if(!c)return vCls();
+  // sắp xếp theo tên (từ cuối của họ tên), rồi theo cả họ tên
+  const last=n=>n.trim().split(/\s+/).pop(),cmp=(a,b)=>last(a.name).localeCompare(last(b.name),'vi')||a.name.localeCompare(b.name,'vi');
+  let list=(S||[]).slice().sort(cmp);const sel=new Set();
+  $('#body').innerHTML=`<div class="c"><button class="g" id="bk">← Quay lại danh sách lớp</button>
+    <h3>👥 ${esc(c.school)} - ${esc(c.name)} <small style="font-weight:400;color:#666">(mã lớp: <b>${esc(c.code)}</b>)</small></h3>
+    <p>Thêm học sinh: mỗi dòng 1 họ tên (dán từ Excel được). Tên đã có trong lớp sẽ được bỏ qua.</p>
+    <textarea id="sn" rows="5" placeholder="Nguyễn Văn An&#10;Trần Thị Bình"></textarea><br><button id="sa">➕ Thêm vào lớp</button> <span id="sm" class="bad"></span></div>
+    <div class="c"><button id="sd" class="dg" disabled>🗑 Xóa đã chọn (<span id="sc">0</span>)</button> <span id="st" style="color:#666;font-size:14px"></span>
+    <div style="overflow-x:auto"><table id="stb"></table></div></div>`;
+  if(e0)$('#sm').textContent='Lỗi tải danh sách: '+e0.message;
+  const upd=()=>{
+    $('#sc').textContent=sel.size;$('#sd').disabled=!sel.size;
+    document.querySelectorAll('#stb .rk').forEach(x=>{x.checked=sel.has(x.value);x.closest('tr').classList.toggle('sel',x.checked)});
+    const a=$('#sall');if(a){a.checked=list.length>0&&sel.size===list.length;a.indeterminate=sel.size>0&&sel.size<list.length}
+  };
+  const draw=()=>{
+    $('#st').textContent=list.length+' học sinh';
+    $('#stb').innerHTML=list.length?'<tr><th style="width:32px"><input type="checkbox" id="sall" title="Chọn tất cả"><th style="width:50px">STT<th>Họ tên<th></tr>'+
+      list.map((s,i)=>`<tr class="rr"><td><input type="checkbox" class="rk" value="${s.id}"><td>${i+1}<td>${esc(s.name)}<td style="text-align:right"><button class="g dg1" data-x="${s.id}">Xóa</button></tr>`).join(''):
+      '<tr><td style="color:#888">Lớp chưa có học sinh nào.</tr>';
+    upd();
+  };
+  const del=async ids=>{
+    $('#sm').className='bad';$('#sm').textContent='Đang xóa…';
+    const {data,error}=await sb.from('students').delete().in('id',ids).select('id');
+    if(error){$('#sm').textContent='Lỗi: '+error.message;return}
+    const ok=new Set((data||[]).map(x=>x.id));
+    list=list.filter(s=>!ok.has(s.id));ids.forEach(i=>sel.delete(i));draw();
+    if(ok.size<ids.length){$('#sm').textContent='Chỉ xóa được '+ok.size+'/'+ids.length+' (kiểm tra quyền xóa bảng students trong Supabase)';return}
+    $('#sm').className='good';$('#sm').textContent='Đã xóa '+ok.size+' học sinh ✓';setTimeout(()=>{$('#sm').textContent=''},3000);
+  };
+  $('#bk').onclick=vCls;
+  $('#stb').addEventListener('click',e=>{
+    if(e.target.id==='sall'){list.forEach(s=>e.target.checked?sel.add(s.id):sel.delete(s.id));return upd()}
+    const x=e.target.closest('[data-x]');
+    if(x){const s=list.find(v=>v.id==x.dataset.x);if(s&&confirm('Xóa học sinh "'+s.name+'" khỏi lớp?'))del([s.id]);return}
+    const tr=e.target.closest('tr.rr');if(!tr)return;
+    const k=tr.querySelector('.rk');if(e.target!==k)k.checked=!k.checked;
+    k.checked?sel.add(k.value):sel.delete(k.value);upd();
+  });
+  $('#sd').onclick=()=>{const ids=[...sel];if(ids.length&&confirm('Xóa '+ids.length+' học sinh đã chọn khỏi lớp?'))del(ids)};
+  $('#sa').onclick=async()=>{
+    const m=$('#sm');m.className='bad';
+    const have=new Set(list.map(s=>s.name.toLowerCase())),seen=new Set(),names=[];
+    $('#sn').value.split('\n').map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean).forEach(n=>{
+      const k=n.toLowerCase();if(!seen.has(k)){seen.add(k);names.push(n)}});
+    if(!names.length)return m.textContent='Chưa nhập tên nào';
+    const fresh=names.filter(n=>!have.has(n.toLowerCase()));
+    if(!fresh.length)return m.textContent='Tất cả tên đã có trong lớp';
+    $('#sa').disabled=true;m.textContent='Đang thêm…';
+    const {data,error}=await sb.from('students').upsert(fresh.map(name=>({class_id:cid,name})),{onConflict:'class_id,name',ignoreDuplicates:true}).select('id,name');
+    $('#sa').disabled=false;
+    if(error)return m.textContent='Lỗi: '+error.message;
+    list=list.concat(data||[]).sort(cmp);$('#sn').value='';draw();
+    m.className='good';m.textContent='Đã thêm '+(data||[]).length+' học sinh'+(names.length-(data||[]).length?' (bỏ qua '+(names.length-(data||[]).length)+' tên trùng)':'')+' ✓';
+  };
+  draw();
 }
 
 let qLv='';
