@@ -60,8 +60,20 @@ window.SITE_DATA = {
                     {
                       "nums": "1 + 2",
                       "name": "Hệ điều hành và các hệ điều hành thông dụng",
+                      "lessonUrl": "flashcard.html?d=splv2_12",
+                      "reviewUrl": "quiz.html?q=splv2_12"
+                    },
+                    {
+                      "nums": "3 + 4",
+                      "name": "Thông tin đầu vào  và thông tin đầu ra",
+                      "lessonUrl": "flashcard.html?d=splv2_34",
+                      "reviewUrl": "quiz.html?q=splv2_34"
+                    },
+                    {
+                      "nums": "*",
+                      "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
-                      "reviewUrl": "quiz.html?q=splv2_123"
+                      "reviewUrl": "quiz.html?q=splv2_1234"
                     }
                   ]
                 }
