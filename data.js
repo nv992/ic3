@@ -34,8 +34,8 @@ window.SITE_DATA = {
                     {
                       "nums": "4",
                       "name": "Hệ điều hành và chương trình ứng dụng",
-                      "lessonUrl": "",
-                      "reviewUrl": ""
+                      "lessonUrl": "flashcard.html?d=splv1_4",
+                      "reviewUrl": "quiz.html?q=splv1_4"
                     },
                     {
                       "nums": "5, 6",
