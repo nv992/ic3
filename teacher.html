@@ -21,7 +21,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const sb=supabase.createClient(SB.url,SB.key),app=$('#app'),TYPES=['single','multi','fill','drag','match','connect','sort'];
 const rc=()=>Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.random()*32|0]).join('');
 // Chỉ hiện dữ liệu của N ngày gần nhất (tính cả hôm nay). Đổi số này nếu muốn dài/ngắn hơn.
-const KEEP_DAYS=7;
+const KEEP_DAYS=14;
 const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(KEEP_DAYS-1));return d};
 const dl=(name,rows)=>{const t='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download=name;a.click()};
 
@@ -31,38 +31,42 @@ function login(){
   $('#li').onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});error?$('#m').textContent=error.message:shell()};
 }
 function shell(){
-  app.innerHTML=`<div class="tabs"><button data-t="Res">📊 Kết quả</button><button data-t="Rep">📑 Báo cáo</button><button data-t="Sum">🧮 Tổng hợp</button><button data-t="Cls">🏫 Lớp & học sinh</button><button data-t="Qz">❓ Câu hỏi</button><button class="g" id="lo">Thoát</button></div><div id="body"></div>`;
+  app.innerHTML=`<div class="tabs"><button data-t="Res">📊 Kết quả</button><button data-t="Sum">🧮 Tổng hợp</button><button data-t="Cls">🏫 Lớp & học sinh</button><button data-t="Qz">❓ Câu hỏi</button><button class="g" id="lo">Thoát</button></div><div id="body"></div>`;
   app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>window['v'+b.dataset.t]());
   $('#lo').onclick=async()=>{await sb.auth.signOut();login()};vRes();
 }
 
 async function vRes(){
   const [{data:qz},{data:cl}]=await Promise.all([sb.from('quizzes').select('id,title'),sb.from('classes').select('id,school,name').order('school').order('name')]);
-  $('#body').innerHTML=`<div class="c" id="rc"><select id="fq"><option value="">Tất cả bài</option>${(qz||[]).map(q=>`<option value="${esc(q.id)}">${esc(q.title)}</option>`).join('')}</select>
+  $('#body').innerHTML=`<div class="c" id="rc"><div class="noprint"><button class="g" id="dp" title="Ngày trước">‹</button> <input type="date" id="rd"> <button class="g" id="dn2" title="Ngày sau">›</button> <button class="g" id="tdy" title="Xem kết quả của hôm nay">Hôm nay</button>
+    <select id="fq"><option value="">Tất cả bài</option>${(qz||[]).map(q=>`<option value="${esc(q.id)}">${esc(q.title)}</option>`).join('')}</select>
     <select id="fc"><option value="">Tất cả lớp</option>${(cl||[]).map(c=>`<option value="${c.id}">${esc(c.school)} - ${esc(c.name)}</option>`).join('')}</select>
-    <label class="dt">Từ ngày <input type="date" id="fd1"></label>
-    <label class="dt">Đến ngày <input type="date" id="fd2"></label>
-    <button id="clr" class="g" title="Bỏ tất cả bộ lọc">✕ Xóa lọc</button>
     <button id="ex" title="Xuất tất cả kết quả theo bộ lọc hiện tại (không chỉ trang này)">⬇ Xuất CSV</button>
-    <button id="del" class="dg" disabled>🗑 Xóa đã chọn (<span id="dn">0</span>)</button> <span id="rm" class="bad"></span>
+    <button class="g" id="rpr">🖨 In</button>
+    <button id="clr" class="g" title="Bỏ bộ lọc, xem tất cả các ngày trong khoảng cho phép">✕ Xóa lọc</button>
+    <button id="del" class="dg" disabled>🗑 Xóa đã chọn (<span id="dn">0</span>)</button> <span id="rm" class="bad"></span></div>
     <div class="rsum" id="wk"></div>
-    <div class="pgr" id="pgt"></div>
     <div style="overflow-x:auto"><table id="tb"></table></div>
     <div class="pgr" id="pgb"></div></div>`;
   {const pad=n=>String(n).padStart(2,'0'),yl=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),w=weekStart();
-    ['fd1','fd2'].forEach(id=>{$('#'+id).min=yl(w);$('#'+id).max=yl(new Date())});
+    $('#rd').min=yl(w);$('#rd').max=yl(new Date());
     $('#wk').textContent='📅 Chỉ hiển thị kết quả '+KEEP_DAYS+' ngày gần nhất (từ '+pad(w.getDate())+'/'+pad(w.getMonth()+1)+'/'+w.getFullYear()+').'}
-  const H=['Thời gian','Trường','Lớp','Học sinh','Bài','Điểm'],PS=50,COLS='id,created_at,quiz_id,student_name,score,total,classes(school,name)';
+  const H=['Thời gian','Trường','Lớp','Mã HS','Học sinh','Bài','Điểm'],PS=50,COLS='id,created_at,quiz_id,student_id,student_name,score,total,classes(school,name)';
   let rows=[],ids=[],pg=0,total=0;const sel=new Set();
-  const toRow=r=>[new Date(r.created_at).toLocaleString('vi-VN'),r.classes?.school||'',r.classes?.name||'',r.student_name,r.quiz_id,r.score+'/'+r.total];
+  // mã học sinh: tải 1 lần theo id (không phụ thuộc quan hệ khóa ngoại); chưa có cột code thì để trống
+  let CODE=null;
+  const getCodes=async()=>{if(CODE)return CODE;CODE={};
+    for(let f=0;;f+=1000){const {data,error}=await sb.from('students').select('id,code').order('id').range(f,f+999);if(error||!data)break;data.forEach(x=>CODE[x.id]=x.code||'');if(data.length<1000)break}
+    return CODE};
+  const toRow=r=>[new Date(r.created_at).toLocaleString('vi-VN'),r.classes?.school||'',r.classes?.name||'',(CODE&&CODE[r.student_id])||'',r.student_name,r.quiz_id,r.score+'/'+r.total];
   // câu truy vấn đã áp dụng bộ lọc (dùng cho cả hiển thị từng trang lẫn xuất CSV)
   const mk=()=>{
     let q=sb.from('attempts').select(COLS,{count:'exact'});
     if($('#fq').value)q=q.eq('quiz_id',$('#fq').value);if($('#fc').value)q=q.eq('class_id',$('#fc').value);
     // lọc theo ngày theo giờ địa phương (từ 00:00 của "Từ ngày" đến hết ngày "Đến ngày")
-    {let lo=weekStart();if($('#fd1').value){const f=new Date($('#fd1').value+'T00:00:00');if(f>lo)lo=f}   // không bao giờ sớm hơn mốc N ngày
-    q=q.gte('created_at',lo.toISOString())}
-    if($('#fd2').value){const e=new Date($('#fd2').value+'T00:00:00');e.setDate(e.getDate()+1);q=q.lt('created_at',e.toISOString())}
+    {let lo=weekStart(),hi=null;const v=$('#rd').value;
+      if(v){const d=new Date(v+'T00:00:00');if(d>lo)lo=d;hi=new Date(d);hi.setDate(hi.getDate()+1)}   // không bao giờ sớm hơn mốc N ngày
+      q=q.gte('created_at',lo.toISOString());if(hi)q=q.lt('created_at',hi.toISOString())}
     return q.order('created_at',{ascending:false}).order('id');
   };
   const upd=()=>{
@@ -84,6 +88,7 @@ async function vRes(){
     const {data,count,error}=await mk().range(pg*PS,pg*PS+PS-1);
     if(error){if(pg>0){pg=0;return load()}$('#tb').innerHTML='<tr><td class="bad">Lỗi: '+esc(error.message)+'</tr>';return}
     total=count||0;
+    await getCodes();
     ids=(data||[]).map(r=>r.id);sel.clear();
     rows=(data||[]).map(toRow);
     $('#tb').innerHTML='<tr><th style="width:32px"><input type="checkbox" id="all" title="Chọn tất cả (trang này)">'+H.map(h=>`<th>${h}`).join('')+'</tr>'+
@@ -117,6 +122,7 @@ async function vRes(){
   // xuất CSV: lấy TOÀN BỘ kết quả theo bộ lọc (mỗi lần 1000 dòng), không chỉ trang đang xem
   $('#ex').onclick=async()=>{
     const btn=$('#ex'),old=btn.textContent;btn.disabled=true;btn.textContent='Đang xuất…';
+    await getCodes();
     const all=[];let from=0,fail=null;
     for(;;){
       const {data,error}=await mk().range(from,from+999);
@@ -128,117 +134,43 @@ async function vRes(){
     if(fail)return alert('Không xuất được: '+fail.message);
     dl('ket-qua.csv',[H,...all]);
   };
-  $('#fq').onchange=$('#fc').onchange=$('#fd1').onchange=$('#fd2').onchange=()=>load(0);
-  $('#clr').onclick=()=>{$('#fq').value=$('#fc').value=$('#fd1').value=$('#fd2').value='';load(0)};
-  load(0);
-}
-
-// ---------- Báo cáo theo ngày: mỗi (bài × lớp) là 1 báo cáo, mỗi học sinh lấy điểm CAO NHẤT ----------
-async function vRep(){
   const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const dmy=s=>s.split('-').reverse().join('/'),nat=(a,b)=>String(a).localeCompare(String(b),'vi',{numeric:true});
-  const hm=t=>new Date(t).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
-  const {data:qz}=await sb.from('quizzes').select('id,title');
-  const QT=Object.fromEntries((qz||[]).map(q=>[q.id,q.title]));
-  $('#body').innerHTML=`<div class="c noprint"><button class="g" id="dp" title="Ngày trước">‹</button> <input type="date" id="rd"> <button class="g" id="dn2" title="Ngày sau">›</button> <button class="g" id="td">Hôm nay</button>
-    <select id="rq"></select> <select id="rcl"></select>
-    <button id="rex">⬇ Xuất CSV</button> <button class="g" id="rpr">🖨 In</button> <button class="g" id="rop" title="Mở tất cả báo cáo">▾ Mở tất cả</button> <button class="g" id="rcol" title="Thu gọn tất cả báo cáo">▸ Thu gọn tất cả</button> <span id="rmsg"></span><div class="rsum" id="wk"></div></div><div id="rout"></div>`;
-  let ATT=[],tk=0,SHOWN=[];const OPEN=new Set();   // các báo cáo đang xổ ra (nhớ khi đổi ngày/bộ lọc)
-  // chỉ cho chọn trong N ngày gần nhất
-  const clamp=()=>{
-    const a=ymd(weekStart()),b=ymd(new Date());let v=$('#rd').value||b;if(v<a)v=a;if(v>b)v=b;
-    $('#rd').min=a;$('#rd').max=b;$('#rd').value=v;$('#dp').disabled=v<=a;$('#dn2').disabled=v>=b;
-    $('#wk').textContent='📅 Chỉ hiển thị báo cáo '+KEEP_DAYS+' ngày gần nhất (từ '+dmy(a)+' đến '+dmy(b)+').';
-  };
-  const fetchDay=async()=>{
-    clamp();const d=$('#rd').value;if(!d)return;const my=++tk;
-    $('#rmsg').className='';$('#rmsg').textContent='Đang tải…';
-    const a=new Date(d+'T00:00:00'),b=new Date(a);b.setDate(b.getDate()+1);
-    const all=[];let from=0;
-    for(;;){
-      const {data,error}=await sb.from('attempts').select('id,created_at,quiz_id,class_id,student_id,student_name,score,total,classes(school,name)')
-        .gte('created_at',a.toISOString()).lt('created_at',b.toISOString()).order('created_at').order('id').range(from,from+999);
-      if(my!==tk)return;
-      if(error){$('#rmsg').className='bad';$('#rmsg').textContent='Lỗi: '+error.message;return}
-      all.push(...(data||[]));if(!data||data.length<1000)break;from+=1000;
-    }
-    ATT=all;$('#rmsg').textContent='';fillFilters();draw();
-  };
-  const clsKey=r=>r.class_id||'__none',clsLabel=r=>r.classes?r.classes.school+' - '+r.classes.name:'Không rõ lớp';
-  const fillFilters=()=>{
-    const qv=$('#rq').value,cv=$('#rcl').value;
-    const qs=[...new Set(ATT.map(r=>r.quiz_id))].sort(nat),cm=new Map();ATT.forEach(r=>cm.set(clsKey(r),clsLabel(r)));
-    const cs=[...cm].sort((x,y)=>nat(x[1],y[1]));
-    $('#rq').innerHTML='<option value="">Tất cả bài</option>'+qs.map(x=>`<option value="${esc(x)}"${x===qv?' selected':''}>${esc(QT[x]||x)}</option>`).join('');
-    $('#rcl').innerHTML='<option value="">Tất cả lớp</option>'+cs.map(([k,l])=>`<option value="${esc(k)}"${k===cv?' selected':''}>${esc(l)}</option>`).join('');
-  };
-  // gom theo (bài, lớp); mỗi học sinh giữ điểm cao nhất (nếu bằng nhau thì lấy lần làm sớm hơn)
-  const build=()=>{
-    const qv=$('#rq').value,cv=$('#rcl').value,G=new Map();
-    ATT.forEach(r=>{
-      if(qv&&r.quiz_id!==qv)return;if(cv&&clsKey(r)!==cv)return;
-      const gk=r.quiz_id+'|'+clsKey(r);let g=G.get(gk);
-      if(!g)G.set(gk,g={quiz:r.quiz_id,label:clsLabel(r),S:new Map()});
-      const sk=r.student_id||'n:'+r.student_name;let st=g.S.get(sk);
-      if(!st)g.S.set(sk,{name:r.student_name||'(không rõ)',best:r.score,total:r.total,at:r.created_at,n:1});
-      else{st.n++;if(r.score>st.best){st.best=r.score;st.total=r.total;st.at=r.created_at}}
-    });
-    return [...G.values()].sort((x,y)=>nat(x.quiz,y.quiz)||nat(x.label,y.label)).map(g=>{
-      const R=[...g.S.values()].sort((x,y)=>y.best-x.best||nat(x.name,y.name));
-      R.forEach((r,k)=>r.rank=k&&r.best===R[k-1].best?R[k-1].rank:k+1);   // bằng điểm thì cùng hạng
-      return {...g,R};
-    });
-  };
-  const draw=()=>{
-    const d=$('#rd').value,G=build();SHOWN=G;
-    if(!G.length){$('#rout').innerHTML=`<div class="c">Không có bài làm nào trong ngày ${esc(dmy(d))}${$('#rq').value||$('#rcl').value?' (theo bộ lọc đang chọn)':''}.</div>`;return}
-    $('#rout').innerHTML=G.map((g,gi)=>{
-      const R=g.R,sc=R.map(r=>r.best),tot=R[0].total,avg=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
-      return `<details class="c rp" data-k="${esc(g.quiz+'|'+g.label)}"${OPEN.has(g.quiz+'|'+g.label)||G.length===1?' open':''}><summary class="rhd"><span><b style="font-size:22px;font-weight:800">📑 ${esc(QT[g.quiz]||g.quiz)}</b> <span style="font-size:15px">· ${esc(g.label)}</span></span><span class="rs">${R.length} học sinh · TB <b>${avg}/${tot}</b></span></summary>
-        <p class="rsum"><b>Lớp:</b> ${esc(g.label)} · <b>Ngày:</b> ${esc(dmy(d))}</p>
-        <p class="rsum">${R.length} học sinh · Điểm trung bình: <b>${avg}/${tot}</b> · Cao nhất: <b>${Math.max(...sc)}/${tot}</b> · Thấp nhất: <b>${Math.min(...sc)}/${tot}</b></p>
-        <div style="overflow-x:auto"><table><tr><th>Hạng<th>Học sinh<th class="n">Điểm cao nhất<th class="n">Số lần làm<th>Lúc làm (lần tốt nhất)</tr>${R.map(r=>`<tr${r.rank<=3?' class="top"':''}><td>${['','🥇','🥈','🥉'][r.rank]||''} ${r.rank}<td>${esc(r.name)}<td class="n"><b>${r.best}/${r.total}</b><td class="n">${r.n}<td>${esc(hm(r.at))}</tr>`).join('')}</table></div></details>`;
-    }).join('');
-  };
-  const shift=n=>{const x=new Date($('#rd').value+'T00:00:00');x.setDate(x.getDate()+n);$('#rd').value=ymd(x);fetchDay()};
-  $('#rd').onchange=fetchDay;$('#dp').onclick=()=>shift(-1);$('#dn2').onclick=()=>shift(1);
-  $('#td').onclick=()=>{$('#rd').value=ymd(new Date());fetchDay()};
-  $('#rq').onchange=$('#rcl').onchange=draw;
+  const arrows=()=>{const v=$('#rd').value;$('#dp').disabled=!!v&&v<=ymd(weekStart());$('#dn2').disabled=!v||v>=ymd(new Date())};
+  const setDay=v=>{const a=ymd(weekStart()),b=ymd(new Date());if(v&&v<a)v=a;if(v&&v>b)v=b;$('#rd').value=v||'';arrows();load(0)};
+  const shift=n=>{const x=new Date(($('#rd').value||ymd(new Date()))+'T00:00:00');x.setDate(x.getDate()+n);setDay(ymd(x))};
+  $('#rd').onchange=()=>setDay($('#rd').value);
+  $('#dp').onclick=()=>shift(-1);$('#dn2').onclick=()=>shift(1);
+  $('#tdy').onclick=()=>setDay(ymd(new Date()));
+  $('#fq').onchange=$('#fc').onchange=()=>load(0);
+  $('#clr').onclick=()=>{$('#fq').value=$('#fc').value='';setDay('')};
   $('#rpr').onclick=()=>window.print();
-  // nhớ trạng thái xổ/thu gọn từng báo cáo (ghi lại lúc bấm, trước khi trình duyệt đổi trạng thái)
-  $('#rout').addEventListener('click',e=>{const sm=e.target.closest('summary'),d=sm&&sm.parentElement;if(d&&d.dataset.k)d.open?OPEN.delete(d.dataset.k):OPEN.add(d.dataset.k)});
-  const setAll=o=>document.querySelectorAll('#rout details.rp').forEach(d=>{d.open=o;o?OPEN.add(d.dataset.k):OPEN.delete(d.dataset.k)});
-  $('#rop').onclick=()=>setAll(true);$('#rcol').onclick=()=>setAll(false);
-  // khi in: tạm xổ hết các báo cáo, in xong trả lại như cũ
-  window.onbeforeprint=()=>document.querySelectorAll('#rout details.rp:not([open])').forEach(d=>{d.open=true;d.dataset.p='1'});
-  window.onafterprint=()=>document.querySelectorAll('#rout details.rp[data-p]').forEach(d=>{d.open=false;delete d.dataset.p});
-  $('#rex').onclick=()=>{
-    const d=dmy($('#rd').value),rows=[['Báo cáo','Mã bài','Tên bài','Lớp','Ngày','Hạng','Học sinh','Điểm cao nhất','Tổng điểm','Số lần làm','Lúc làm (lần tốt nhất)']];
-    SHOWN.forEach((g,gi)=>g.R.forEach(r=>rows.push([gi+1,g.quiz,QT[g.quiz]||'',g.label,d,r.rank,r.name,r.best,r.total,r.n,hm(r.at)])));
-    if(rows.length<2)return alert('Không có dữ liệu để xuất');
-    dl('bao-cao-'+$('#rd').value+'.csv',rows);
-  };
-  $('#rd').value=ymd(new Date());fetchDay();
+  setDay(ymd(new Date()));   // mặc định: hôm nay
 }
 
 // ---------- Tổng hợp: mỗi lớp 1 bảng, hàng = học sinh, cột = bài, ô = điểm cao nhất ----------
 async function vSum(){
   const nat=(a,b)=>String(a).localeCompare(String(b),'vi',{numeric:true});
-  $('#body').innerHTML=`<div class="c noprint"><select id="ss"></select> <select id="sc"></select> <button id="sex">⬇ Xuất CSV</button> <button class="g" id="spr">🖨 In</button> <button class="g" id="sop">▾ Mở tất cả</button> <button class="g" id="scol">▸ Thu gọn tất cả</button> <span id="sm"></span>
-    <div class="rsum">Điểm cao nhất của từng học sinh ở mỗi bài, tính trên tất cả các lần làm.</div></div><div id="sout"></div>`;
+  $('#body').innerHTML=`<div class="c noprint"><select id="ss"></select> <select id="sc"></select> <button id="srf" title="Tải lại dữ liệu mới nhất, giữ nguyên bộ lọc">🔄 Làm mới</button> <button id="sex">⬇ Xuất CSV</button> <button class="g" id="spr">🖨 In</button> <button class="g" id="sop">▾ Mở tất cả</button> <button class="g" id="scol">▸ Thu gọn tất cả</button> <span id="sm"></span> <span id="sts" class="rsum"></span>
+    <div class="rsum">Điểm cao nhất của từng học sinh ở mỗi bài, tính trên các lần làm trong ${KEEP_DAYS} ngày gần nhất.</div></div><div id="sout"></div>`;
   $('#sm').textContent='Đang tải…';
-  const pull=async(tb,cols)=>{const all=[];for(let f=0;;f+=1000){const {data,error}=await sb.from(tb).select(cols).order('id').range(f,f+999);if(error){$('#sm').className='bad';$('#sm').textContent='Lỗi: '+error.message;return null}all.push(...(data||[]));if(!data||data.length<1000)break}return all};
-  const [cl,st,at,qzr]=await Promise.all([
-    sb.from('classes').select('id,school,name').then(r=>r.data||[]),
-    pull('students','id,class_id,name'),
-    pull('attempts','id,quiz_id,class_id,student_id,student_name,score,total'),
-    sb.from('quizzes').select('id,title').then(r=>r.data||[])]);
-  if(!st||!at)return;
+  const pull=async(tb,cols,since)=>{const all=[];for(let f=0;;f+=1000){let q=sb.from(tb).select(cols);if(since)q=q.gte('created_at',since);const {data,error}=await q.order('id').range(f,f+999);if(error){$('#sm').className='bad';$('#sm').textContent='Lỗi: '+error.message;return null}all.push(...(data||[]));if(!data||data.length<1000)break}return all};
+  let cl,st,at,qzr,QT;
+  const fetchAll=async()=>{
+    const r=await Promise.all([
+      sb.from('classes').select('id,school,name').then(r=>r.data||[]),
+      pull('students','id,class_id,name,code').then(async r=>r||(($('#sm').textContent=''),await pull('students','id,class_id,name'))),   // chưa có cột code thì lấy không mã
+      pull('attempts','id,quiz_id,class_id,student_id,student_name,score,total,created_at',weekStart().toISOString()),
+      sb.from('quizzes').select('id,title').then(r=>r.data||[])]);
+    if(!r[1]||!r[2])return false;
+    [cl,st,at,qzr]=r;QT=Object.fromEntries(qzr.map(q=>[q.id,q.title]));return true};
+  const fillSchools=()=>{const sv=$('#ss').value,schools=[...new Set(cl.map(c=>c.school))].sort(nat);
+    $('#ss').innerHTML='<option value="">Tất cả trường</option>'+schools.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
+    if(schools.includes(sv))$('#ss').value=sv};
+  const stamp=()=>{$('#sts').textContent='Cập nhật lúc '+new Date().toLocaleTimeString('vi-VN')};
+  if(!await fetchAll())return;
   $('#sm').textContent='';
-  const QT=Object.fromEntries(qzr.map(q=>[q.id,q.title]));
-  const schools=[...new Set(cl.map(c=>c.school))].sort(nat);
-  $('#ss').innerHTML='<option value="">Tất cả trường</option>'+schools.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
-  let SHOWN=[];const OPEN=new Set();
+  fillSchools();stamp();
+  let SHOWN=[];const OPEN=new Set();let SORTC=0;   // sắp xếp theo mã HS: 0 = mặc định (tổng điểm cao→thấp), 1 = tăng dần, -1 = giảm dần
   const fillCls=()=>{const sv=$('#ss').value,cv=$('#sc').value;
     const L=cl.filter(c=>!sv||c.school===sv).sort((a,b)=>nat(a.school,b.school)||nat(a.name,b.name));
     $('#sc').innerHTML='<option value="">Tất cả lớp</option>'+L.map(c=>`<option value="${c.id}"${c.id===cv?' selected':''}>${esc(sv?c.name:c.school+' - '+c.name)}</option>`).join('')};
@@ -247,15 +179,15 @@ async function vSum(){
     return cl.filter(c=>(!sv||c.school===sv)&&(!cv||c.id===cv)).sort((a,b)=>nat(a.school,b.school)||nat(a.name,b.name)).map(c=>{
       const A=at.filter(r=>r.class_id===c.id),qids=[...new Set(A.map(r=>r.quiz_id))].sort((x,y)=>nat(QT[x]||x,QT[y]||y));
       const S=new Map();
-      st.filter(x=>x.class_id===c.id).forEach(x=>S.set(x.id,{name:x.name,B:{}}));
-      A.forEach(r=>{const k=r.student_id||'n:'+r.student_name;let o=S.get(k);if(!o)S.set(k,o={name:r.student_name||'(không rõ)',B:{}});
+      st.filter(x=>x.class_id===c.id).forEach(x=>S.set(x.id,{name:x.name,code:x.code||'',B:{}}));
+      A.forEach(r=>{const k=r.student_id||'n:'+r.student_name;let o=S.get(k);if(!o)S.set(k,o={name:r.student_name||'(không rõ)',code:'',B:{}});
         const b=o.B[r.quiz_id];if(!b||r.score>b.score)o.B[r.quiz_id]={score:r.score,total:r.total}});
       const R=[...S.values()].map(r=>({
         ...r,
         sum:qids.reduce((sum,q)=>sum+(Number(r.B[q]?.score)||0),0)
       }));
-      // Xếp tổng điểm tất cả bài từ cao xuống thấp; nếu bằng điểm thì xếp theo tên.
-      R.sort((x,y)=>y.sum-x.sum||nat(x.name,y.name));
+      // Mặc định xếp tổng điểm từ cao xuống thấp (bằng điểm thì theo tên); bấm tiêu đề "Mã HS" để xếp theo mã.
+      R.sort(SORTC?((x,y)=>(!x.code-!y.code)||SORTC*nat(x.code,y.code)||nat(x.name,y.name)):((x,y)=>y.sum-x.sum||nat(x.name,y.name)));   // học sinh chưa có mã luôn xếp cuối
       return {c,qids,R};
     });
   };
@@ -263,41 +195,119 @@ async function vSum(){
     const G=build();SHOWN=G;
     if(!G.length){$('#sout').innerHTML='<div class="c">Chưa có lớp nào.</div>';return}
     $('#sout').innerHTML=G.map(g=>`<details class="c rp" data-k="${g.c.id}"${OPEN.has(g.c.id)||G.length===1?' open':''}><summary class="rhd"><span><b style="font-size:18px">${esc(g.c.school)} - ${esc(g.c.name)}</b></span><span class="rs">${g.R.length} học sinh · ${g.qids.length} bài</span></summary>
-      <div style="overflow-x:auto"><table><tr><th>#<th>Học sinh${g.qids.map(q=>`<th class="n" style="min-width:90px;white-space:normal">${esc(QT[q]||q)}<br><code style="font-weight:400;font-size:11px">${esc(q)}</code>`).join('')}</tr>${
-        g.R.map((r,i)=>`<tr><td>${i+1}<td>${esc(r.name)}${g.qids.map(q=>{const b=r.B[q];return b?`<td class="n" style="background:${Number(b.score)<800?'#fff0d6':'transparent'}"><b style="color:#222">${b.score}</b>`:`<td class="n" style="background:#fde8e7"><b style="color:#222">—</b>`}).join('')}</tr>`).join('')||'<tr><td colspan="9" style="color:#888">Lớp chưa có học sinh.</tr>'}</table></div></details>`).join('');
+      <div style="overflow-x:auto"><table><tr><th data-sk="1" style="cursor:pointer;user-select:none" title="Bấm để sắp xếp theo mã (tăng → giảm → mặc định)">Mã HS ${SORTC>0?'▲':SORTC<0?'▼':'⇅'}<th>Học sinh${g.qids.map(q=>`<th class="n" style="min-width:90px;white-space:normal">${esc(QT[q]||q)}<br><code style="font-weight:400;font-size:11px">${esc(q)}</code>`).join('')}</tr>${
+        g.R.map((r,i)=>`<tr><td>${esc(r.code||'')}<td>${esc(r.name)}${g.qids.map(q=>{const b=r.B[q];return b?`<td class="n" style="background:${Number(b.score)<800?'#fff0d6':'transparent'}"><b style="color:#222">${b.score}</b>`:`<td class="n" style="background:#fde8e7"><b style="color:#222">—</b>`}).join('')}</tr>`).join('')||'<tr><td colspan="9" style="color:#888">Lớp chưa có học sinh.</tr>'}</table></div></details>`).join('');
   };
-  $('#sout').addEventListener('click',e=>{const sm=e.target.closest('summary'),d=sm&&sm.parentElement;if(d&&d.dataset.k)d.open?OPEN.delete(d.dataset.k):OPEN.add(d.dataset.k)});
+  $('#sout').addEventListener('click',e=>{const th=e.target.closest('th[data-sk]');if(th){SORTC=SORTC===0?1:SORTC===1?-1:0;draw();return}const sm=e.target.closest('summary'),d=sm&&sm.parentElement;if(d&&d.dataset.k)d.open?OPEN.delete(d.dataset.k):OPEN.add(d.dataset.k)});
   const setAll=o=>document.querySelectorAll('#sout details.rp').forEach(d=>{d.open=o;o?OPEN.add(d.dataset.k):OPEN.delete(d.dataset.k)});
   $('#sop').onclick=()=>setAll(true);$('#scol').onclick=()=>setAll(false);
-  window.onbeforeprint=()=>document.querySelectorAll('#sout details.rp:not([open]),#rout details.rp:not([open])').forEach(d=>{d.open=true;d.dataset.p='1'});
+  window.onbeforeprint=()=>document.querySelectorAll('#sout details.rp:not([open])').forEach(d=>{d.open=true;d.dataset.p='1'});
   window.onafterprint=()=>document.querySelectorAll('details.rp[data-p]').forEach(d=>{d.open=false;delete d.dataset.p});
   $('#ss').onchange=()=>{fillCls();draw()};$('#sc').onchange=draw;
   $('#sex').onclick=()=>{
     const rows=[];
-    SHOWN.forEach(g=>{rows.push(['Trường','Lớp','Học sinh',...g.qids.map(q=>QT[q]||q),'Tổng điểm']);
-      g.R.forEach(r=>rows.push([g.c.school,g.c.name,r.name,...g.qids.map(q=>r.B[q]?r.B[q].score+'/'+r.B[q].total:''),r.sum]));rows.push([])});
+    SHOWN.forEach(g=>{rows.push(['Trường','Lớp','Mã HS','Học sinh',...g.qids.map(q=>QT[q]||q),'Tổng điểm']);
+      g.R.forEach(r=>rows.push([g.c.school,g.c.name,r.code||'',r.name,...g.qids.map(q=>r.B[q]?r.B[q].score+'/'+r.B[q].total:''),r.sum]));rows.push([])});
     if(rows.length<2)return alert('Không có dữ liệu để xuất');
     dl('tong-hop.csv',rows);
   };
   $('#spr').onclick=()=>window.print();
+  $('#srf').onclick=async()=>{const b=$('#srf');b.disabled=true;$('#sm').className='';$('#sm').textContent='Đang tải…';
+    const ok=await fetchAll();b.disabled=false;if(!ok)return;
+    $('#sm').textContent='';fillSchools();fillCls();draw();stamp()};
   fillCls();draw();
 }
 
 async function vCls(){
-  const {data}=await sb.from('classes').select('id,school,name,code,students(count)').order('school').order('name');
-  $('#body').innerHTML=`<div class="c"><h3>Thêm danh sách học sinh</h3><p>Dán từ Excel, mỗi dòng: <code>Trường, Lớp, Họ tên</code>. Nhập lại tên đã có sẽ được bỏ qua.</p>
-    <textarea id="ro" rows="8" placeholder="Tiểu học A	3A	Nguyễn Văn An"></textarea><button id="imp">Nhập</button> <span id="m" class="bad"></span></div>
-    <div class="c"><table><tr><th>Trường<th>Lớp<th>Mã lớp (đưa cho học sinh)<th>Số HS<th></tr>${(data||[]).map(c=>`<tr><td>${esc(c.school)}<td>${esc(c.name)}<td><b>${c.code}</b><td>${c.students[0].count}<td><button class="g" data-del="${c.id}">Xóa</button></tr>`).join('')}</table></div>`;
+  const nat=(a,b)=>String(a).localeCompare(String(b),'vi',{numeric:true});
+  const SQL='alter table students add column if not exists code text;';
+  // cột "code" (mã học sinh) có thể chưa tạo trong Supabase → thử lấy cả mã, lỗi thì lấy không mã
+  let {data,error}=await sb.from('classes').select('id,school,name,code,students(id,name,code)').order('school').order('name');
+  const noCol=!!error;
+  if(noCol)({data}=await sb.from('classes').select('id,school,name,code,students(id,name)').order('school').order('name'));
+  data=data||[];
+  const HELP='Dán từ Excel, mỗi dòng: <code>Trường, Lớp, Mã HS, Họ tên</code>. Dòng không có mã (chỉ <code>Trường, Lớp, Họ tên</code>) vẫn nhập được. Nhập lại học sinh đã có: có mã thì cập nhật mã, không có mã thì bỏ qua.';
+  $('#body').innerHTML=`<div class="c"><h3 id="mh">Thêm danh sách học sinh</h3><p id="mp">${HELP}</p>
+    ${noCol?`<p class="bad">Chưa có cột mã học sinh trong Supabase. Vào <b>SQL Editor</b>, chạy một lần: <code>${SQL}</code> rồi tải lại trang.</p>`:''}
+    <textarea id="ro" rows="8" placeholder="Tiểu học A\t3A\tHS001\tNguyễn Văn An"></textarea>
+    <button id="imp">Nhập</button><button id="msv" hidden>💾 Lưu thay đổi</button> <button id="mcn" class="g" hidden>✕ Hủy</button> <span id="m" class="bad"></span></div>
+    <div class="c"><div style="overflow-x:auto"><table><tr><th>Trường<th>Lớp<th>Mã lớp (đưa cho học sinh)<th>Số HS<th><th></tr>${data.map(c=>`<tr><td>${esc(c.school)}<td>${esc(c.name)}<td><b>${c.code}</b><td>${(c.students||[]).length}<td><button data-mg="${c.id}">✎ Quản lý</button><td><button class="g" data-del="${c.id}">Xóa</button></tr>`).join('')}</table></div></div>`;
   document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('Xóa lớp và học sinh trong lớp?')){await sb.from('classes').delete().eq('id',b.dataset.del);vCls()}});
+  const splitLine=l=>l.split(l.includes('\t')?'\t':',').map(x=>x.trim());
+
+  // ---- Thêm danh sách (nhập mới) ----
   $('#imp').onclick=async()=>{
-    const L=$('#ro').value.split('\n').map(l=>l.split(/\t|,/).map(x=>x.trim())).filter(r=>r.length>=3&&r[0]&&r[1]&&r[2]),
-      ex=Object.fromEntries((data||[]).map(c=>[c.school+'|'+c.name,c.id])),by={};
-    L.forEach(r=>(by[r[0]+'|'+r[1]]??=[]).push(r.slice(2).join(' ')));
-    for(const [k,names] of Object.entries(by)){
+    const by={},ex=Object.fromEntries(data.map(c=>[c.school+'|'+c.name,c.id]));let any=false;
+    $('#ro').value.split('\n').map(splitLine).forEach(r=>{
+      if(r.length<3||!r[0]||!r[1])return;
+      const has=r.length>=4&&r[3],code=has?r[2]:'',name=has?r.slice(3).join(' '):r.slice(2).join(' ');
+      if(!name)return;any=true;((by[r[0]+'|'+r[1]]??={})[name]=code)});   // trùng tên trong cùng lớp: dòng sau thắng
+    if(!any)return $('#m').textContent='Không có dòng hợp lệ (cần: Trường, Lớp, Mã HS, Họ tên).';
+    if(noCol&&Object.values(by).some(m=>Object.values(m).some(Boolean)))return $('#m').textContent='Chưa có cột mã học sinh. Chạy SQL ở trên trước.';
+    for(const [k,map] of Object.entries(by)){
       let id=ex[k];
       if(!id){const [school,name]=k.split('|'),{data:n,error}=await sb.from('classes').insert({school,name,code:rc()}).select('id').single();if(error)return $('#m').textContent=error.message;id=n.id}
-      const {error}=await sb.from('students').upsert(names.map(name=>({class_id:id,name})),{onConflict:'class_id,name',ignoreDuplicates:true});
-      if(error)return $('#m').textContent=error.message;
+      const all=Object.entries(map),withCode=all.filter(x=>x[1]),noCode=all.filter(x=>!x[1]);
+      if(withCode.length){const {error}=await sb.from('students').upsert(withCode.map(([name,code])=>({class_id:id,name,code})),{onConflict:'class_id,name'});
+        if(error)return $('#m').textContent=error.message}
+      if(noCode.length){const {error}=await sb.from('students').upsert(noCode.map(([name])=>({class_id:id,name})),{onConflict:'class_id,name',ignoreDuplicates:true});
+        if(error)return $('#m').textContent=error.message}
+    }
+    vCls();
+  };
+
+  // ---- Quản lý 1 lớp: đưa danh sách lên khung để sửa / thêm / bớt rồi lưu ----
+  let MG=null;
+  document.querySelectorAll('[data-mg]').forEach(b=>b.onclick=()=>{
+    const c=data.find(x=>x.id===b.dataset.mg);if(!c)return;
+    const orig=[...(c.students||[])].sort((x,y)=>nat(x.name,y.name)).map(x=>({id:x.id,code:(x.code||'').trim(),name:x.name}));
+    MG={id:c.id,school:c.school,name:c.name,orig};
+    $('#mh').textContent='Quản lý lớp: '+c.school+' - '+c.name+' ('+orig.length+' học sinh)';
+    $('#mp').innerHTML='Sửa trực tiếp trong khung rồi bấm <b>Lưu thay đổi</b>. Mỗi dòng: <code>Trường, Lớp, Mã HS, Họ tên</code>. Muốn <b>thêm</b>: gõ dòng mới (hoặc chỉ <code>Mã HS, Họ tên</code>). Muốn <b>xóa</b>: xóa dòng đó.';
+    $('#ro').rows=14;
+    $('#ro').value=orig.map(x=>[c.school,c.name,x.code,x.name].join('\t')).join('\n');
+    $('#imp').hidden=true;$('#msv').hidden=false;$('#mcn').hidden=false;$('#m').textContent='';
+    scrollTo(0,0);$('#ro').focus();
+  });
+  $('#mcn').onclick=()=>vCls();
+  $('#msv').onclick=async()=>{
+    if(!MG)return;
+    // đọc khung: 4+ cột = Trường, Lớp, Mã, Tên | 3 cột = Trường, Lớp, Tên | 2 cột = Mã, Tên | 1 cột = Tên
+    const map=new Map();
+    $('#ro').value.split('\n').map(splitLine).forEach(r=>{
+      r=r.filter((x,i)=>i<r.length);let code='',name='';
+      if(r.length>=4){code=r[2];name=r.slice(3).join(' ');if(!name){name=r[2];code=''}}
+      else if(r.length===3){name=r[2]}
+      else if(r.length===2){code=r[0];name=r[1]}
+      else{name=r[0]||''}
+      name=name.trim();if(name)map.set(name,code.trim())});   // trùng tên: dòng sau thắng
+    const cur=[...map].map(([name,code])=>({name,code}));
+    if(noCol&&cur.some(x=>x.code))return $('#m').textContent='Chưa có cột mã học sinh. Chạy SQL ở trên trước.';
+    // so khớp danh sách cũ với mới: giống hệt → bỏ qua; cùng tên → đổi mã; cùng mã → đổi tên; còn lại → thêm / xóa
+    let oldL=[...MG.orig],newL=[...cur];const upd=[];
+    const take=(f)=>{for(let i=newL.length-1;i>=0;i--){const j=oldL.findIndex(o=>f(o,newL[i]));if(j>-1){const o=oldL.splice(j,1)[0],n=newL.splice(i,1)[0];if(o.name!==n.name||o.code!==n.code)upd.push({id:o.id,name:n.name,code:n.code})}}};
+    take((o,n)=>o.name===n.name&&o.code===n.code);
+    take((o,n)=>o.name===n.name);
+    take((o,n)=>o.code&&o.code===n.code);
+    const ins=newL,del=oldL;
+    if(!ins.length&&!upd.length&&!del.length)return $('#m').textContent='Không có thay đổi nào để lưu.';
+    const msg='Thêm '+ins.length+', sửa '+upd.length+', xóa '+del.length+' học sinh trong lớp '+MG.school+' - '+MG.name+'. Lưu?'+(del.length?'\n\nLưu ý: xóa học sinh có thể xóa luôn điểm đã làm của em đó.':'');
+    if(!confirm(msg))return;
+    const bt=$('#msv');bt.disabled=true;$('#m').className='';$('#m').textContent='Đang lưu…';
+    const fail=t=>{bt.disabled=false;$('#m').className='bad';$('#m').textContent=t};
+    for(let i=0;i<del.length;i+=100){
+      const ids=del.slice(i,i+100).map(x=>x.id),{data:r,error}=await sb.from('students').delete().in('id',ids).select('id');
+      if(error)return fail('Lỗi xóa: '+error.message);
+      if((r||[]).length<ids.length)return fail('Không xóa được hết (kiểm tra quyền trong Supabase).');
+    }
+    for(const u of upd){
+      const {data:r,error}=await sb.from('students').update(noCol?{name:u.name}:{name:u.name,code:u.code||null}).eq('id',u.id).select('id');
+      if(error)return fail('Lỗi sửa "'+u.name+'": '+(error.message.includes('duplicate')?'tên này đã có trong lớp':error.message));
+      if(!r||!r.length)return fail('Không sửa được (kiểm tra quyền trong Supabase).');
+    }
+    if(ins.length){
+      const {error}=await sb.from('students').insert(ins.map(x=>{const o={class_id:MG.id,name:x.name};if(!noCol&&x.code)o.code=x.code;return o}));
+      if(error)return fail('Lỗi thêm: '+(error.message.includes('duplicate')?'có tên đã tồn tại trong lớp':error.message));
     }
     vCls();
   };

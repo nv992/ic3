@@ -18,6 +18,8 @@ const sb=supabase.createClient(SB.url,SB.key),qid=new URLSearchParams(location.s
 let SC,quiz,cls,stu,Q,i,right,A,locked,fin,P,sel,pts,t0,who,CL=[],STU=[],CS=null,RV=[],SS=null,RS=[],REC=null,HIST=null,REVM=false;
 const pk={school:'',cid:'',cname:'',sid:'',sname:''};
 let onPick=true; // true = đang ở màn chọn trường/lớp/tên
+// Danh sách học sinh kèm mã: dùng hàm list_students_v2 (xem them-cot-ma-hoc-sinh.sql); chưa có thì dùng hàm cũ (không có mã)
+const loadStu=async id=>{try{const r=await sb.rpc('list_students_v2',{p_class:String(id)});if(!r.error&&Array.isArray(r.data))return r}catch(e){}return sb.rpc('list_students',{p_class:id})};
 let PRE=null; // danh sách học sinh của lớp đã nhớ, tải sẵn song song với bài + danh sách lớp
 // Tên + biểu tượng trang (lấy từ data.js, giống trang chủ)
 {const D=window.SITE_DATA||{};$('#siteIcon').textContent=D.siteIcon||'';$('#siteTitle').textContent=D.siteTitle||'Trang chủ'}
@@ -70,7 +72,7 @@ function drawCls(){
   el.disabled=!pk.school||!rows.length;
 }
 function drawNames(loading){
-  const rows=STU.slice().sort((a,b)=>NAT(a.name,b.name)).map(s=>[s.id,s.name]);
+  const rows=STU.slice().sort((a,b)=>(!a.code-!b.code)||NAT(a.code||'',b.code||'')||NAT(a.name,b.name)).map(s=>[s.id,s.code?s.code+' - '+s.name:s.name]);
   const el=$('#st');
   el.innerHTML=opts(rows,pk.sid,!pk.cid?'-- Hãy chọn lớp trước --':loading?'Đang tải danh sách…':rows.length?'-- Chọn tên --':'Lớp này chưa có học sinh');
   el.disabled=!pk.cid||loading||!rows.length;
@@ -85,14 +87,14 @@ async function pickClass(id){
   Object.assign(pk,{cid:c.id,cname:c.name,sid:'',sname:''});STU=[];
   drawCls();drawNames(true);sync();
   const pre=PRE&&String(PRE.id)===String(id)?PRE.p:null;PRE=null;
-  const {data}=await (pre||sb.rpc('list_students',{p_class:id}));
+  const {data}=await (pre||loadStu(id));
   if(pk.cid!==c.id)return;            // em đã đổi lớp trong lúc đang tải
   STU=data||[];drawNames();
 }
 function showWho(){
   const ini=(who.name.trim().split(/\s+/).pop()||'?').charAt(0).toUpperCase();
   const w=$('#who');
-  w.innerHTML=`<span class="av">${esc(ini)}</span><span class="wt"><b>${esc(who.name)}</b><small>${esc(clsLabel(who.cls))}, ${esc(who.school)}</small></span>`;
+  w.innerHTML=`<span class="av">${esc(ini)}</span><span class="wt"><b>${esc(who.name)}</b><small>${who.code?esc(who.code)+' · ':''}${esc(clsLabel(who.cls))}, ${esc(who.school)}</small></span>`;
   w.hidden=false;$('#tb').classList.add('has-who');onPick=false;
 }
 // ---------- Lịch sử làm bài (lưu trên máy của học sinh, theo bài + học sinh) ----------
@@ -130,7 +132,7 @@ function drawHist(){
   const l=h.list[0],can=h.last&&h.last.qs;
   el.innerHTML=`<div class="hbox"><div>📜 Em đã làm bài này <b>${h.count}</b> lần. Gần nhất: <b>${l.sc}/1000</b> · ⏱ ${tmf(l.sec)} · ${fmt(l.at)}</div>${can?'<button type="button" class="go alt" id="rvb">👁 Xem lại bài gần nhất</button>':''}</div>`;
   if(can)$('#rvb').onclick=()=>{
-    cls={id:pk.cid};stu=pk.sid;who={name:pk.sname,cls:pk.cname,school:pk.school};
+    cls={id:pk.cid};stu=pk.sid;who={name:pk.sname,code:pk.scode||'',cls:pk.cname,school:pk.school};
     try{localStorage.setItem('sel',JSON.stringify({school:pk.school,cls:pk.cid}))}catch{}
     showWho();HIST=h;renderResult(h.last,false);
   };
@@ -140,7 +142,7 @@ function begin(){if(fxStop)fxStop();Q=prep(quiz.questions);i=0;right=0;pts=0;t0=
 (async function(){
   // Gửi cùng lúc: bài ôn, danh sách lớp, và học sinh của lớp đã nhớ (trước đây chạy nối tiếp nên chậm)
   let l0={};try{l0=JSON.parse(localStorage.getItem('sel')||'{}')}catch{}
-  if(l0.cls)PRE={id:l0.cls,p:Promise.resolve(sb.rpc('list_students',{p_class:l0.cls})).catch(()=>({data:null}))};
+  if(l0.cls)PRE={id:l0.cls,p:Promise.resolve(loadStu(l0.cls)).catch(()=>({data:null}))};
   const [{data},{data:cl}]=await Promise.all([sb.from('quizzes').select('*').eq('id',qid||'').maybeSingle(),sb.rpc('list_classes')]);
   if(!data){app.innerHTML='<div class="card"><h1>Ôi, không tìm thấy bài ôn 😢</h1><p>Em hãy kiểm tra lại đường link hoặc nhờ thầy cô gửi lại nhé.</p><a class="go alt" href="index.html">← Về trang chủ</a></div>';return}
   quiz=data;document.title=quiz.title||'Làm bài';
@@ -167,13 +169,13 @@ function begin(){if(fxStop)fxStop();Q=prep(quiz.questions);i=0;right=0;pts=0;t0=
   $('#cl').onchange=()=>pickClass($('#cl').value);
   $('#st').onchange=()=>{
     const s=STU.find(x=>String(x.id)===$('#st').value);
-    if(s){pk.sid=s.id;pk.sname=s.name}else{pk.sid='';pk.sname=''}
+    if(s){pk.sid=s.id;pk.sname=s.name;pk.scode=s.code||''}else{pk.sid='';pk.sname='';pk.scode=''}
     sync();
   };
   $('#start').onclick=()=>{
     if(!(pk.school&&pk.cid&&pk.sid))return;
     try{localStorage.setItem('sel',JSON.stringify({school:pk.school,cls:pk.cid}))}catch{}
-    cls={id:pk.cid};stu=pk.sid;who={name:pk.sname,cls:pk.cname,school:pk.school};
+    cls={id:pk.cid};stu=pk.sid;who={name:pk.sname,code:pk.scode||'',cls:pk.cname,school:pk.school};
     showWho();begin();
   };
 
