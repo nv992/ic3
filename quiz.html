@@ -236,10 +236,11 @@ function fbox(q,a){
   return `<div class="fb ${r?'good':'bad'}"><b>${r?'✔ Chính xác!':f>0?'◐ Đúng một phần':'✗ Chưa đúng'}</b>${r||isConn(q)||q.type==='sort'?'':`<p>Đáp án: ${esc(shown(q))}</p>`}${q.explain?`<p>${esc(q.explain)}</p>`:''}</div>`;
 }
 
-const chip=v=>`<span class="chip${sel===v?' sel':''}" draggable="true" data-v="${esc(v)}">${esc(v)}</span>`;
+let selIdx=-1;
+const chip=(v,bi)=>`<span class="chip${bi!==undefined&&sel===v&&selIdx===bi?' sel':''}" draggable="true" data-v="${esc(v)}"${bi!==undefined?` data-bi="${bi}"`:''}>${esc(v)}</span>`;
 function drawDrag(){
   const q=Q[i],bank=[],cnt={};q.pairs.forEach(x=>cnt[x[1]]=(cnt[x[1]]||0)+1);P.forEach(x=>{if(x)cnt[x]--});Object.keys(cnt).forEach(v=>{for(let n=0;n<cnt[v];n++)bank.push(v)});bank.sort();
-  $('.dq').innerHTML=q.pairs.map((x,k)=>`<div class="row"><span class="lf">${esc(x[0])}</span>→<span class="slot" data-k="${k}">${P[k]?chip(P[k]):''}</span></div>`).join('')+`<div class="bank">${bank.map(v=>chip(v)).join('')}</div>`;
+  $('.dq').innerHTML=q.pairs.map((x,k)=>`<div class="row"><span class="lf">${esc(x[0])}</span>→<span class="slot" data-k="${k}">${P[k]?chip(P[k]):''}</span></div>`).join('')+`<div class="bank">${bank.map((v,bi)=>chip(v,bi)).join('')}</div>`;
 }
 let DSRC=-1;
 function put(k,v,src=-1){if(locked)return;const q=Q[i],tot=q.pairs.filter(x=>x[1]===v).length,used=P.filter(x=>x===v).length;if(src<0&&P[k]!==v&&used>=tot)return;if(src>-1)P[src]=null;P[k]=v;sel=null;drawDrag()}
@@ -247,7 +248,7 @@ document.addEventListener('click',e=>{
   if(locked||!Q||!$('.dq'))return;
   const c=e.target.closest('.chip'),s=e.target.closest('.slot');if(!c&&!s)return;
   if(s&&sel)return put(+s.dataset.k,sel);
-  if(c&&s){P[+s.dataset.k]=null;sel=null}else if(c)sel=sel===c.dataset.v?null:c.dataset.v;
+  if(c&&s){P[+s.dataset.k]=null;sel=null}else if(c){const bi=+c.dataset.bi;if(sel===c.dataset.v&&selIdx===bi){sel=null;selIdx=-1}else{sel=c.dataset.v;selIdx=bi}}
   drawDrag();
 });
 document.addEventListener('dragstart',e=>{const c=e.target.closest&&e.target.closest('.chip');if(c){const sl=c.closest('.slot');DSRC=sl?+sl.dataset.k:-1;e.dataTransfer.setData('text/plain',c.dataset.v)}});
