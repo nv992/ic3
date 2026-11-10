@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://ldemozqloryuzuxrlzho.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="quiz.css?v=6">
+<link rel="stylesheet" href="quiz.css?v=8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
@@ -196,8 +196,8 @@ function show(rv){
   const q=Q[i];locked=!!rv;REVM=!!rv;sel=null;P=null;let b='';
   if(q.type==='fill')b=`<div class="q fillq">${q.text.split('___').map(esc).join('<input autocomplete="off">')}</div>`;
   else{
-    b=`<div class="q">${esc(q.text)}</div>`+(img(q.image)?`<img class="qimg" src="${img(q.image)}" alt="">`:'');
-    if(q.type==='single'||q.type==='multi')b+=(q.type==='multi'?'<p class="hint">Chọn nhiều đáp án</p>':'')+`<div class="opts${q.options.some(o=>img(O(o).img))?' imgs':''}">${q.options.map((o,k)=>{o=O(o);const u=img(o.img);return `<button class="opt${u?' pic':''}" data-k="${k}"><span class="mkr${q.type==='multi'?' sq':''}"></span>${u?`<img src="${u}" alt="${esc(o.alt||'')}">`:''}${o.text?`<span class="tx">${esc(o.text)}</span>`:''}<span class="rs"></span></button>`}).join('')}</div>`;
+    b=`<div class="q">${esc(q.text)}</div>`+(img(q.image)?`<img class="qimg" src="${img(q.image)}" alt="" title="Bấm để phóng to">`:'');
+    if(q.type==='single'||q.type==='multi')b+=(q.type==='multi'?'<p class="hint">Chọn nhiều đáp án</p>':'')+`<div class="opts${q.options.some(o=>img(O(o).img))?' imgs n'+Math.min(q.options.length,4):''}">${q.options.map((o,k)=>{o=O(o);const u=img(o.img);return `<button class="opt${u?' pic':''}" data-k="${k}"><span class="mkr${q.type==='multi'?' sq':''}"></span>${u?`<img src="${u}" alt="${esc(o.alt||'')}"><span class="zb" role="button" tabindex="0" aria-label="Phóng to ảnh" data-src="${u}">🔍</span>`:''}${o.text?`<span class="tx">${esc(o.text)}</span>`:''}<span class="rs"></span></button>`}).join('')}</div>`;
     else if(q.type==='sort')b+='<p class="hint">Bấm chọn 1 thẻ rồi bấm vào khung nhóm để xếp vào, hoặc kéo-thả thẻ vào khung. Bấm vào thẻ đã xếp để đưa nó trở lại.</p><div class="sx"></div>';
     else if(isConn(q))b+='<p class="hint">Bấm chọn 1 mục bên trái rồi bấm mục tương ứng bên phải để nối.</p><div class="cn"></div>';
     else if(q.type==='match'){const vs=Array.isArray(q.choices)&&q.choices.length?[...new Set([...q.choices,...q.pairs.map(x=>x[1])])]:[...new Set(q.pairs.map(x=>x[1]))].sort();
@@ -470,5 +470,55 @@ async function save(){
   $('#sv').innerHTML=error?'<span class="err">Chưa lưu được điểm.</span> <button class="go" id="rt">Thử lại</button>':'<span class="okc">Đã lưu điểm ✓</span>';
   if(error)$('#rt').onclick=save;
 }
+
+// ---------- Phóng to ảnh: bấm ảnh để xem, ✕ / Esc / bấm nền để tắt và làm tiếp ----------
+(function(){
+  let ov,im,s=1,x=0,y=0,pts=new Map(),pd=0,ps=1,mv=false;
+  const MAX=5,apply=()=>{im.style.transform=`translate(${x}px,${y}px) scale(${s})`;ov.classList.toggle('zin',s>1)};
+  const setS=n=>{s=Math.min(MAX,Math.max(1,n));if(s===1)x=y=0;apply()};
+  function build(){
+    ov=document.createElement('div');ov.className='zov';ov.hidden=true;
+    ov.innerHTML='<button type="button" class="zx" aria-label="Đóng">✕ Đóng</button><div class="zst"><img alt="" draggable="false"></div><div class="zbar"><button type="button" data-z="-">−</button><button type="button" data-z="0">100%</button><button type="button" data-z="+">+</button></div><div class="zhint">Bấm đúp hoặc chụm 2 ngón để phóng to · Bấm ra ngoài để đóng</div>';
+    document.body.appendChild(ov);im=ov.querySelector('img');
+    const st=ov.querySelector('.zst');
+    ov.querySelector('.zx').onclick=close;
+    ov.querySelector('.zbar').onclick=e=>{const b=e.target.closest('button');if(!b)return;const z=b.dataset.z;setS(z==='+'?s*1.5:z==='-'?s/1.5:1)};
+    // bấm vào nền (không phải ảnh) để đóng
+    st.addEventListener('click',e=>{if(mv){mv=false;return}if(e.target===st)close()});
+    st.addEventListener('dblclick',e=>{e.preventDefault();setS(s>1?1:2.5)});
+    st.addEventListener('wheel',e=>{e.preventDefault();setS(s*(e.deltaY<0?1.2:1/1.2))},{passive:false});
+    st.addEventListener('pointerdown',e=>{pts.set(e.pointerId,{x:e.clientX,y:e.clientY});st.setPointerCapture(e.pointerId);mv=false;if(pts.size===2){const[a,b]=[...pts.values()];pd=Math.hypot(a.x-b.x,a.y-b.y);ps=s}});
+    st.addEventListener('pointermove',e=>{
+      const p=pts.get(e.pointerId);if(!p)return;
+      if(pts.size===2){pts.set(e.pointerId,{x:e.clientX,y:e.clientY});const[a,b]=[...pts.values()];setS(ps*Math.hypot(a.x-b.x,a.y-b.y)/pd);mv=true;return}
+      if(s>1){const dx=e.clientX-p.x,dy=e.clientY-p.y;if(Math.abs(dx)+Math.abs(dy)>2)mv=true;x+=dx;y+=dy;apply()}
+      pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    });
+    const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pd=0};
+    st.addEventListener('pointerup',up);st.addEventListener('pointercancel',up);
+  }
+  function open(src,alt){
+    if(!ov)build();
+    im.src=src;im.alt=alt||'';s=1;x=y=0;apply();ov.hidden=false;
+    document.body.classList.add('zlock');ov.querySelector('.zx').focus();
+  }
+  function close(){if(!ov||ov.hidden)return;ov.hidden=true;im.removeAttribute('src');document.body.classList.remove('zlock');pts.clear()}
+  // Bấm ảnh câu hỏi hoặc nút 🔍 trên ảnh đáp án (chặn không cho chọn nhầm đáp án)
+  document.addEventListener('click',e=>{
+    const t=e.target.closest&&e.target.closest('.qimg,.zb');if(!t)return;
+    e.preventDefault();e.stopPropagation();
+    open(t.classList.contains('zb')?t.dataset.src:t.currentSrc||t.src,t.alt);
+  },true);
+  // Khi đang xem ảnh: Esc / Enter / Space để đóng; chặn các phím tắt làm bài (Enter = Kiểm tra, 1-9 = chọn đáp án, ←/→)
+  document.addEventListener('keydown',e=>{
+    if(ov&&!ov.hidden){
+      e.stopImmediatePropagation();
+      if(e.key==='Escape'||e.key==='Enter'||e.key===' '){e.preventDefault();close()}
+      else if(e.key==='+'||e.key==='=')setS(s*1.5);else if(e.key==='-')setS(s/1.5);
+      return;
+    }
+    const z=e.target.closest&&e.target.closest('.zb');if(z&&(e.key==='Enter'||e.key===' ')){e.preventDefault();e.stopPropagation();open(z.dataset.src)}
+  },true);
+})();
 </script><script>document.addEventListener("contextmenu",e=>e.preventDefault());</script>
 </body></html>

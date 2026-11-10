@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="student.css?v=3">
+<link rel="stylesheet" href="student.css?v=4">
 </head>
 <body>
 <div class="topbar"><div class="wrap"><a href="#/"><span id="siteIcon"></span><span id="siteTitle"></span></a></div></div>
@@ -40,7 +40,29 @@ function render(){
   });
   if(!progs.length&&groups.length) h+=`<div class="empty">Chưa có chương trình nào.</div>`;
 
+  // ---- Web hỗ trợ học tập (K12 Online) ----
+  const sp=D.support;
+  if(sp&&(sp.cardName||(sp.steps||[]).length)){
+    const url=safeUrl(sp.cardUrl), vid=safeUrl(sp.videoUrl);
+    const card=`<${url?'a':'div'} class="k12"${url?` href="${esc(url)}" target="_blank" rel="noopener"`:''}>
+        <div class="ico">${esc(sp.cardIcon||'📚')}</div><b>${esc(sp.cardName)}</b>
+        ${url?'<span class="go">Bấm để mở <i>→</i></span>':''}</${url?'a':'div'}>`;
+    const steps=(sp.steps||[]).map(t=>`<li><span>${md(t)}</span></li>`).join('');
+    const pw=sp.password?`<div class="pw"><span>${esc(sp.passwordLabel||'Mật khẩu:')}</span><code id="pwText">${esc(sp.password)}</code><button class="copy" id="pwCopy" type="button">Sao chép</button></div>`:'';
+    const video=vid?`<div class="vid"><a href="${esc(vid)}" target="_blank" rel="noopener">▶ ${esc(sp.videoText||'Xem video hướng dẫn')}</a></div>`:'';
+    h+=`<section class="prog"><div class="sec-head"><h2><span class="sico">${esc(sp.icon||'🌐')}</span>${esc(sp.title||'Web hỗ trợ học tập')}</h2></div>
+      <div class="support">${card}<div class="guide"><h3>${esc(sp.guideTitle||'Hướng dẫn')}</h3><ol>${steps}</ol>${pw}${video}</div></div></section>`;
+  }
+
   document.getElementById('app').innerHTML=h;
+
+  const cb=document.getElementById('pwCopy');
+  if(cb) cb.onclick=()=>{
+    const t=document.getElementById('pwText').textContent;
+    const done=()=>{cb.textContent='Đã chép ✓';setTimeout(()=>cb.textContent='Sao chép',1500)};
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done,done);
+    else{const r=document.createRange();r.selectNodeContents(document.getElementById('pwText'));const se=getSelection();se.removeAllRanges();se.addRange(r);try{document.execCommand('copy')}catch(e){}done()}
+  };
 
   document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{cur=+b.dataset.g;render()});
 }

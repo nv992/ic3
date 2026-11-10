@@ -246,3 +246,34 @@ button.qn:hover{transform:translateY(-2px)}
 .back:hover{transform:translateY(-2px);box-shadow:0 5px 0 var(--ink)}
 .back:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
 .navrow + main.wrap{padding-top:8px}
+
+/* ---------- Phóng to ảnh ---------- */
+.qimg{cursor:zoom-in}
+.opt.pic .zb{position:absolute;right:16px;top:112px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;background:#fff;border:2.5px solid var(--line);border-radius:50%;box-shadow:0 2px 0 var(--ink);cursor:zoom-in;line-height:1}
+.opt.pic .zb:hover{background:#fff3c4}
+body.zlock{overflow:hidden}
+.zov{position:fixed;inset:0;z-index:100;background:rgba(15,20,35,.88);display:flex;flex-direction:column;overscroll-behavior:contain}
+.zov[hidden]{display:none}
+.zst{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;padding:56px 12px 84px}
+.zst img{max-width:100%;max-height:100%;object-fit:contain;background:#fff;border-radius:10px;transform-origin:center;user-select:none;-webkit-user-drag:none;cursor:zoom-in;transition:transform .08s}
+.zov.zin .zst img{cursor:grab}
+.zx{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px;z-index:2;font:inherit;font-weight:800;font-size:16px;padding:8px 18px;background:#fff;color:var(--ink);border:2.5px solid var(--line);border-radius:999px;box-shadow:0 3px 0 var(--ink);cursor:pointer}
+.zx:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.zbar{position:absolute;left:50%;bottom:max(34px,calc(env(safe-area-inset-bottom) + 24px));transform:translateX(-50%);display:flex;gap:8px;z-index:2}
+.zbar button{font:inherit;font-weight:800;font-size:18px;min-width:48px;height:42px;padding:0 14px;background:#fff;color:var(--ink);border:2.5px solid var(--line);border-radius:999px;box-shadow:0 3px 0 var(--ink);cursor:pointer}
+.zhint{position:absolute;left:0;right:0;bottom:max(8px,env(safe-area-inset-bottom));text-align:center;color:#d6dcf0;font-size:13px;padding:0 12px;pointer-events:none}
+
+/* ---------- Ít đáp án ảnh thì cho ảnh to hơn ---------- */
+.opts.imgs.n2{grid-template-columns:repeat(2,1fr)}
+.opts.imgs.n2 .opt.pic img{height:300px}
+.opts.imgs.n2 .opt.pic .zb{top:282px}
+.opts.imgs.n3{grid-template-columns:repeat(3,1fr)}
+.opts.imgs.n3 .opt.pic img{height:210px}
+.opts.imgs.n3 .opt.pic .zb{top:192px}
+@media(max-width:700px){
+  .opts.imgs.n2 .opt.pic img{height:200px}
+  .opts.imgs.n2 .opt.pic .zb{top:182px}
+  .opts.imgs.n3{grid-template-columns:repeat(2,1fr)}
+  .opts.imgs.n3 .opt.pic img{height:160px}
+  .opts.imgs.n3 .opt.pic .zb{top:142px}
+}
