@@ -15,6 +15,7 @@ button.dg{background:#d92d20}button.dg:disabled{background:#e9e3cf;color:#999;cu
 .rhd h3{margin:0}.rsum{margin:6px 0;color:#555;font-size:14px}button:disabled{opacity:.45;cursor:not-allowed}.rsum b{color:#222}td.n,th.n{text-align:right;white-space:nowrap}tr.top td{background:#fff7d6}
 .rhd{margin:0}details.rp>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:6px 14px;flex-wrap:wrap;font-size:16px;padding:2px 0;border-radius:8px}details.rp>summary::-webkit-details-marker{display:none}details.rp>summary::before{content:'▸';display:inline-block;width:1.2em;color:#2f6fed;font-weight:700}details.rp[open]>summary::before{content:'▾'}details.rp>summary:hover{background:#fffaf0}details.rp>summary .rs{color:#555;font-size:14px}details.rp[open]>summary{margin-bottom:6px}details.rp>summary>span:first-of-type{flex:1;min-width:200px}
 @media print{.tabs,.noprint{display:none!important}body{background:#fff}.c{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid}}
+#app.ro #del,#app.ro .rk,#app.ro #all{display:none!important}
 </style></head><body><main id="app"></main>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -30,8 +31,14 @@ function login(){
   app.innerHTML=`<div class="c"><h2>Đăng nhập giáo viên</h2><input id="em" placeholder="Email"><br><input id="pw" type="password" placeholder="Mật khẩu"><br><button id="li">Đăng nhập</button><p id="m" class="bad"></p></div>`;
   $('#li').onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$('#em').value.trim(),password:$('#pw').value});error?$('#m').textContent=error.message:shell()};
 }
-function shell(){
-  app.innerHTML=`<div class="tabs"><button data-t="Res">📊 Kết quả</button><button data-t="Sum">🧮 Tổng hợp</button><button data-t="Cls">🏫 Lớp & học sinh</button><button data-t="Qz">❓ Câu hỏi</button><button class="g" id="lo">Thoát</button></div><div id="body"></div>`;
+let RO=false;   // true = tài khoản chỉ xem (email nằm trong VIEW_ONLY ở config.js)
+async function shell(){
+  const {data:{session}}=await sb.auth.getSession();
+  const mail=(session?.user?.email||'').trim().toLowerCase();
+  RO=(window.VIEW_ONLY||[]).some(x=>String(x).trim().toLowerCase()===mail);
+  if(RO){window.vCls=window.vQz=()=>{}}
+  app.classList.toggle('ro',RO);
+  app.innerHTML=`<div class="tabs"><button data-t="Res">📊 Kết quả</button><button data-t="Sum">🧮 Tổng hợp</button>${RO?'':'<button data-t="Cls">🏫 Lớp & học sinh</button><button data-t="Qz">❓ Câu hỏi</button>'}<button class="g" id="lo">Thoát</button></div><div id="body"></div>`;
   app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>window['v'+b.dataset.t]());
   $('#lo').onclick=async()=>{await sb.auth.signOut();login()};vRes();
 }
@@ -106,6 +113,7 @@ async function vRes(){
     c.checked?sel.add(c.value):sel.delete(c.value);upd();
   });
   $('#del').onclick=async()=>{
+    if(RO)return;
     const list=[...sel];if(!list.length)return;
     if(!confirm('Xóa '+list.length+' kết quả đã chọn? Không thể hoàn tác.'))return;
     $('#del').disabled=true;$('#rm').textContent='Đang xóa…';let n=0;
