@@ -35,13 +35,13 @@ window.SITE_DATA = {
                       "nums": "4",
                       "name": "Hệ điều hành và chương trình ứng dụng",
                       "lessonUrl": "",
-                      "reviewUrl": ""
+                      "reviewUrl": "quiz.html?q=splv1_4"
                     },
                     {
-                      "nums": "5, 6",
-                      "name": "Tập tin và thư mục",
+                      "nums": "*",
+                      "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
-                      "reviewUrl": ""
+                      "reviewUrl": "quiz.html?q=splv1_1234"
                     }
                   ]
                 }
