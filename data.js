@@ -72,11 +72,11 @@ window.SITE_DATA = {
                     {
                       "nums": "5 + 6",
                       "name": "Thiết bị nhập, Thiết bị xuất",
-                      "lessonUrl": "",
+                      "lessonUrl": "flashcard.html?d=splv2_56",
                       "reviewUrl": "quiz.html?q=splv2_56"
                     },
                     {
-                      "nums": "",
+                      "nums": "*",
                       "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
                       "reviewUrl": "quiz.html?q=splv2_123456"
