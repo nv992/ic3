@@ -1,7 +1,169 @@
-[
-  {"type":"single","text":"Thiết bị nào dùng để nhập dữ liệu?","options":["Bàn phím","Màn hình","Loa"],"answer":[0]},
-  {"type":"multi","text":"Chọn các thiết bị xuất (output):","options":["Máy in","Chuột","Loa","Micro"],"answer":[0,2]},
-  {"type":"fill","text":"Phím tắt để sao chép là Ctrl + ___ .","answer":[["C","c"]]},
-  {"type":"fill","text":"___ là bộ não của máy tính, còn ___ dùng để lưu trữ lâu dài.","answer":[["CPU"],["ổ cứng","Ổ cứng"]]},
-  {"type":"drag","text":"Kéo thiết bị vào đúng nhóm:","pairs":[["Chuột","Nhập"],["Máy in","Xuất"],["Loa","Xuất"]]}
-]
+[ {
+  "text": "Em hãy phân loại thiết bị theo chức năng của chúng.",
+  "type": "sort",
+  "items": [
+   {
+    "text": "Màn hình (Monitor)",
+    "group": 1
+   },
+   {
+    "text": "Chuột (Mouse)",
+    "group": 0
+   },
+   {
+    "text": "Máy chiếu (Projector)",
+    "group": 1
+   },
+   {
+    "text": "Máy in (Printer)",
+    "group": 1
+   },
+   {
+    "text": "Bàn phím (Keyboard)",
+    "group": 0
+   },
+   {
+    "text": "Bàn di chuột cảm ứng (Touchpad)",
+    "group": 0
+   },
+   {
+    "text": "Máy quét (Scanner)",
+    "group": 0
+   },
+   {
+    "text": "Micro (Microphone)",
+    "group": 0
+   },
+   {
+    "text": "Loa (Speaker)",
+    "group": 1
+   },
+   {
+    "text": "Tai nghe (Headphone)",
+    "group": 1
+   },
+   {
+    "text": "Webcam",
+    "group": 0
+   }
+  ],
+  "groups": [
+   "Thiết bị đầu vào (Input Device)",
+   "Thiết bị đầu ra (Output Device)"
+  ]
+ },
+{
+  "text": "Em hãy cho biết, hai thiết bị nào sau đây là thiết bị ngoại vi? (Chọn 2)",
+  "type": "multi",
+  "answer": [
+   0,
+   3
+  ],
+  "options": [
+   {
+    "alt": "Chuột (Mouse)",
+    "img": "images/spl1-chuot.png"
+   },
+   {
+    "alt": "Dây nguồn",
+    "img": "images/spl1-day-nguon.png"
+   },
+   {
+    "alt": "Thùng máy tính",
+    "img": "images/spl1-thung-may.png"
+   },
+   {
+    "alt": "Bàn phím (Keyboard)",
+    "img": "images/spl1-ban-phim.jpg"
+   }
+  ]
+ },
+ {
+  "text": "Em hãy ghép mỗi thuật ngữ ở cột bên phải với định nghĩa phù hợp ở cột bên trái.",
+  "type": "connect",
+  "pairs": [
+   [
+    "Một máy tính có các thành phần của máy tính để bàn được tích hợp trong một khối duy nhất (thay vì tách biệt giữa thùng máy và màn hình hiển thị).",
+    "Máy tính tất cả trong một (All-in-One Computer)"
+   ],
+   [
+    "Máy tính cá nhân đặt trên hoặc gần bàn làm việc và được sử dụng tại một vị trí duy nhất do yêu cầu về kích thước và nguồn điện.",
+    "Máy tính để bàn (Desktop)"
+   ],
+   [
+    "Điện thoại thông minh thường có màn hình cảm ứng, khả năng kết nối Internet và hệ điều hành.",
+    "Điện thoại thông minh (Smartphone)"
+   ],
+   [
+    "Một thiết bị di động có kích thước trung gian giữa máy tính xách tay và điện thoại di động, thường có màn hình cảm ứng và khả năng kết nối Internet. (Nó có thể có hoặc không có quyền truy cập vào mạng di động.)",
+    "Máy tính bảng (Tablet)"
+   ],
+   [
+    "Một máy tính di động được sử dụng ở nhiều địa điểm. Nguồn điện từ Pin hoặc AC.",
+    "Máy tính xách tay (Laptop)"
+   ]
+  ]
+ },
+ {
+  "text": "Em hãy chọn Có nếu phát biểu đó đúng và Không nếu phát biểu đó sai.",
+  "type": "match",
+  "pairs": [
+   [
+    "Máy tính để bàn có thể di động được.",
+    "Không"
+   ],
+   [
+    "Điện thoại thông minh, máy tính bảng và máy tính xách tay có thể di động được.",
+    "Có"
+   ],
+   [
+    "Tai nghe (Headsets, Headphones), loa đều là thiết bị ngoại vi cho âm thanh (Sound/Audio).",
+    "Có"
+   ]
+  ]
+ },{
+  "text": "Em hãy xác định mỗi tùy chọn là phần cứng hoặc phần mềm.",
+  "type": "drag",
+  "pairs": [
+   [
+    "Máy in (Printer)",
+    "Phần cứng (Hardware)"
+   ],
+   [
+    "Cơ sở dữ liệu (Database)",
+    "Phần mềm (Software)"
+   ],
+   [
+    "Chuột (Mouse)",
+    "Phần cứng (Hardware)"
+   ],
+   [
+    "Bàn phím (Keyboard)",
+    "Phần cứng (Hardware)"
+   ],
+   [
+    "Thư điện tử (Email)",
+    "Phần mềm (Software)"
+   ]
+  ],
+  "explain": "Phần cứng là những thiết bị em có thể cầm, nắm và nhìn thấy được như máy in, chuột, bàn phím. Phần mềm là các chương trình do con người tạo ra, em không thể cầm nắm được như cơ sở dữ liệu và thư điện tử (email)."
+ },
+ {
+  "text": "Em hãy ghép thuật ngữ với định nghĩa phù hợp.",
+  "type": "drag",
+  "pairs": [
+   [
+    "Phải được cài đặt trên máy tính trước khi nó có thể chạy.",
+    "Desktop Application"
+   ],
+   [
+    "Được thiết kế để thực hiện nhiều chức năng khác nhau.",
+    "Application"
+   ],
+   [
+    "Phiên bản nhẹ của ứng dụng phần mềm thường được thiết kế để chạy trên điện thoại thông minh và máy tính bảng, nhưng có một số cũng chạy trên máy tính xách tay.",
+    "App"
+   ]
+  ],
+  "explain": "Desktop Application cần cài đặt trên máy tính trước khi chạy. Application là ứng dụng có nhiều chức năng khác nhau. App là phiên bản nhẹ dành cho điện thoại và máy tính bảng."
+ }]

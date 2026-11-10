@@ -347,11 +347,7 @@ async function vQz(){
     const f=$('#fl').value;qLv=f;
     const list=Z.map((q,i)=>[q,i]).filter(([q])=>!f||(f==='__none'?!L[q.id]:L[q.id]===f));
     $('#qc').textContent=list.length+'/'+Z.length+' bài';
-    $('#ql2').innerHTML='<tr><th>Bài<th>Level<th>Ghi chú<th>Số câu<th>Link dán vào admin (data.js)<th></tr>'+(list.length?list.map(([q,i])=>`<tr><td>${esc(q.title)}<td>${esc(L[q.id]||'')}<td style="white-space:pre-wrap;color:#666">${esc(N[q.id]||'')}<td>${q.questions.length}<td><code>quiz.html?q=${esc(q.id)}</code><td><button class="g" data-dl="${i}" title="Tải file JSON câu hỏi của bài này">Tải JSON</button><button class="g" data-ed="${i}">Sửa</button><button class="g" data-mg="${i}" title="Chuyển bài làm của bài này sang bài khác">Gộp</button><button class="g" data-rm="${i}">Xóa</button></tr>`).join(''):'<tr><td colspan="6" style="color:#888">Không có bài nào.</tr>');
-    document.querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>{
-      const q=Z[b.dataset.dl],u=URL.createObjectURL(new Blob([JSON.stringify(q.questions,null,1)],{type:'application/json'})),a=document.createElement('a');
-      a.href=u;a.download=(q.id||'questions').replace(/[^\w.-]+/g,'_')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
-    });
+    $('#ql2').innerHTML='<tr><th>Bài<th>Level<th>Ghi chú<th>Số câu<th>Link dán vào admin (data.js)<th></tr>'+(list.length?list.map(([q,i])=>`<tr><td>${esc(q.title)}<td>${esc(L[q.id]||'')}<td style="white-space:pre-wrap;color:#666">${esc(N[q.id]||'')}<td>${q.questions.length}<td><code>quiz.html?q=${esc(q.id)}</code><td><button class="g" data-ed="${i}">Sửa</button><button class="g" data-mg="${i}" title="Chuyển bài làm của bài này sang bài khác">Gộp</button><button class="g" data-rm="${i}">Xóa</button></tr>`).join(''):'<tr><td colspan="6" style="color:#888">Không có bài nào.</tr>');
     document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const q=Z[b.dataset.ed];EDIT=q.id;$('#qi').value=q.id;$('#qt').value=q.title;$('#ql').value=L[q.id]||'';$('#qd').value=N[q.id]||'';$('#qj').value=JSON.stringify(q.questions,null,1);scrollTo(0,0)});
     document.querySelectorAll('[data-mg]').forEach(b=>b.onclick=async()=>{
       const q=Z[b.dataset.mg],others=Z.filter(x=>x.id!==q.id);
