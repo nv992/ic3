@@ -22,7 +22,7 @@ const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>
 const sb=supabase.createClient(SB.url,SB.key),app=$('#app'),TYPES=['single','multi','fill','drag','match','connect','sort'];
 const rc=()=>Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.random()*32|0]).join('');
 // Chỉ hiện dữ liệu của N ngày gần nhất (tính cả hôm nay). Đổi số này nếu muốn dài/ngắn hơn.
-const KEEP_DAYS=14;
+const KEEP_DAYS=28;   // 4 tuần
 const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(KEEP_DAYS-1));return d};
 const dl=(name,rows)=>{const t='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download=name;a.click()};
 
@@ -57,7 +57,7 @@ async function vRes(){
     <div class="pgr" id="pgb"></div></div>`;
   {const pad=n=>String(n).padStart(2,'0'),yl=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),w=weekStart();
     $('#rd').min=yl(w);$('#rd').max=yl(new Date());
-    $('#wk').textContent='📅 Chỉ hiển thị kết quả '+KEEP_DAYS+' ngày gần nhất (từ '+pad(w.getDate())+'/'+pad(w.getMonth()+1)+'/'+w.getFullYear()+').'}
+    $('#wk').textContent='📅 Chỉ hiển thị kết quả 4 tuần gần nhất (từ '+pad(w.getDate())+'/'+pad(w.getMonth()+1)+'/'+w.getFullYear()+').'}
   const H=['Thời gian','Trường','Lớp','Mã HS','Học sinh','Bài','Điểm'],PS=50,COLS='id,created_at,quiz_id,student_id,student_name,score,total,classes(school,name)';
   let rows=[],ids=[],pg=0,total=0;const sel=new Set();
   // mã học sinh: tải 1 lần theo id (không phụ thuộc quan hệ khóa ngoại); chưa có cột code thì để trống
@@ -159,7 +159,7 @@ async function vRes(){
 async function vSum(){
   const nat=(a,b)=>String(a).localeCompare(String(b),'vi',{numeric:true});
   $('#body').innerHTML=`<div class="c noprint"><select id="ss"></select> <select id="sc"></select> <button id="srf" title="Tải lại dữ liệu mới nhất, giữ nguyên bộ lọc">🔄 Làm mới</button> <button id="sex">⬇ Xuất CSV</button> <button class="g" id="spr">🖨 In</button> <button class="g" id="sop">▾ Mở tất cả</button> <button class="g" id="scol">▸ Thu gọn tất cả</button> <span id="sm"></span> <span id="sts" class="rsum"></span>
-    <div class="rsum">Điểm cao nhất của từng học sinh ở mỗi bài, tính trên các lần làm trong ${KEEP_DAYS} ngày gần nhất.</div></div><div id="sout"></div>`;
+    <div class="rsum">Điểm cao nhất của từng học sinh ở mỗi bài, tính trên các lần làm trong 4 tuần gần nhất.</div></div><div id="sout"></div>`;
   $('#sm').textContent='Đang tải…';
   const pull=async(tb,cols,since)=>{const all=[];for(let f=0;;f+=1000){let q=sb.from(tb).select(cols);if(since)q=q.gte('created_at',since);const {data,error}=await q.order('id').range(f,f+999);if(error){$('#sm').className='bad';$('#sm').textContent='Lỗi: '+error.message;return null}all.push(...(data||[]));if(!data||data.length<1000)break}return all};
   let cl,st,at,qzr,QT;
@@ -199,13 +199,21 @@ async function vSum(){
       return {c,qids,R};
     });
   };
+  const FQ={};   // chữ đang tìm của từng lớp (id lớp → chuỗi), giữ lại khi vẽ lại bảng
+  const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim();   // tìm không phân biệt dấu / hoa thường
+  const applyQ=d=>{const inp=d.querySelector('input.sq');if(!inp)return;const q=norm(inp.value),rows=[...d.querySelectorAll('tr[data-s]')];let n=0;
+    rows.forEach(tr=>{const ok=!q||tr.dataset.s.includes(q);tr.style.display=ok?'':'none';if(ok)n++});
+    const c=d.querySelector('.sqn');if(c)c.textContent=q?(n?n+'/'+rows.length+' học sinh':'Không tìm thấy'):''};
   const draw=()=>{
     const G=build();SHOWN=G;
     if(!G.length){$('#sout').innerHTML='<div class="c">Chưa có lớp nào.</div>';return}
     $('#sout').innerHTML=G.map(g=>`<details class="c rp" data-k="${g.c.id}"${OPEN.has(g.c.id)||G.length===1?' open':''}><summary class="rhd"><span><b style="font-size:18px">${esc(g.c.school)} - ${esc(g.c.name)}</b></span><span class="rs">${g.R.length} học sinh · ${g.qids.length} bài</span></summary>
+      <div class="noprint" style="margin:8px 0"><input class="sq" data-k="${g.c.id}" type="search" placeholder="🔍 Tìm tên hoặc mã học sinh…" value="${esc(FQ[g.c.id]||'')}" style="width:100%;max-width:320px;box-sizing:border-box;margin:0"> <span class="sqn rsum"></span></div>
       <div style="overflow-x:auto"><table><tr><th data-sk="1" style="cursor:pointer;user-select:none" title="Bấm để sắp xếp theo mã (tăng → giảm → mặc định)">Mã HS ${SORTC>0?'▲':SORTC<0?'▼':'⇅'}<th>Học sinh${g.qids.map(q=>`<th class="n" style="min-width:90px;white-space:normal">${esc(QT[q]||q)}<br><code style="font-weight:400;font-size:11px">${esc(q)}</code>`).join('')}</tr>${
-        g.R.map((r,i)=>`<tr><td>${esc(r.code||'')}<td>${esc(r.name)}${g.qids.map(q=>{const b=r.B[q];return b?`<td class="n" style="background:${Number(b.score)<800?'#fff0d6':'transparent'}"><b style="color:#222">${b.score}</b>`:`<td class="n" style="background:#fde8e7"><b style="color:#222">—</b>`}).join('')}</tr>`).join('')||'<tr><td colspan="9" style="color:#888">Lớp chưa có học sinh.</tr>'}</table></div></details>`).join('');
+        g.R.map((r,i)=>`<tr data-s="${esc(norm(r.name+' '+(r.code||'')))}"><td>${esc(r.code||'')}<td>${esc(r.name)}${g.qids.map(q=>{const b=r.B[q];return b?`<td class="n" style="background:${Number(b.score)<800?'#fff0d6':'transparent'}"><b style="color:#222">${b.score}</b>`:`<td class="n" style="background:#fde8e7"><b style="color:#222">—</b>`}).join('')}</tr>`).join('')||'<tr><td colspan="9" style="color:#888">Lớp chưa có học sinh.</tr>'}</table></div></details>`).join('');
+    document.querySelectorAll('#sout details.rp').forEach(applyQ);
   };
+  $('#sout').addEventListener('input',e=>{const i=e.target.closest('input.sq');if(!i)return;FQ[i.dataset.k]=i.value;applyQ(i.closest('details'))});
   $('#sout').addEventListener('click',e=>{const th=e.target.closest('th[data-sk]');if(th){SORTC=SORTC===0?1:SORTC===1?-1:0;draw();return}const sm=e.target.closest('summary'),d=sm&&sm.parentElement;if(d&&d.dataset.k)d.open?OPEN.delete(d.dataset.k):OPEN.add(d.dataset.k)});
   const setAll=o=>document.querySelectorAll('#sout details.rp').forEach(d=>{d.open=o;o?OPEN.add(d.dataset.k):OPEN.delete(d.dataset.k)});
   $('#sop').onclick=()=>setAll(true);$('#scol').onclick=()=>setAll(false);
