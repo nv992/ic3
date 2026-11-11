@@ -115,8 +115,8 @@ window.SITE_DATA = {
                     },
                     {
                       "nums": "5",
-                      "name": "Bộ dunh59 vị tài nguyên thống nhất",
-                      "lessonUrl": "flashcard.html?d=splv3_6",
+                      "name": "Bộ định vị tài nguyên thống nhất",
+                      "lessonUrl": "flashcard.html?d=splv3_5",
                       "reviewUrl": "quiz.html?q=splv3_5"
                     }
                   ]
