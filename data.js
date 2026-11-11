@@ -112,6 +112,12 @@ window.SITE_DATA = {
                       "name": "Mạng máy tính",
                       "lessonUrl": "flashcard.html?d=splv3_4",
                       "reviewUrl": "quiz.html?q=splv3_4"
+                    },
+                    {
+                      "nums": "5",
+                      "name": "Bộ dunh59 vị tài nguyên thống nhất",
+                      "lessonUrl": "flashcard.html?d=splv3_6",
+                      "reviewUrl": "quiz.html?q=splv3_5"
                     }
                   ]
                 }
