@@ -76,7 +76,7 @@ window.SITE_DATA = {
                       "reviewUrl": "quiz.html?q=splv2_56"
                     },
                     {
-                      "nums": "*",
+                      "nums": "**",
                       "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
                       "reviewUrl": "quiz.html?q=splv2_123456"
