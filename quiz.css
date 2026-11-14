@@ -165,7 +165,7 @@ select.big:disabled{cursor:not-allowed;color:var(--muted)}
 .rbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:10px}
 
 /* ---------- Câu nối ---------- */
-.cn{display:grid;grid-template-columns:1.3fr 1fr;gap:18px 40px;align-items:start;margin-top:6px}
+.cn{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,1.38fr);gap:18px 28px;align-items:start;margin-top:6px}
 .cl,.cr{display:flex;flex-direction:column;gap:12px}
 .ci{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-weight:500;font-size:clamp(15px,2vw,17.5px);line-height:1.45;padding:13px 16px;background:var(--surface);border:0;border-radius:16px;cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s}
 .ci:hover{background:var(--surface2);transform:translateY(-1px)}
@@ -331,3 +331,9 @@ body.zlock{overflow:hidden}
 @media(max-width:560px){.dq.pics{grid-template-columns:1fr}.dq.pics .pimg{height:clamp(70px,14vh,110px)}}
 /* khung kết quả/giải thích nằm ngoài thẻ trắng, trên nền trang */
 #fb .fb{margin:16px 0 8px}
+/* ghép nối: thuật ngữ (trái) gọn, định nghĩa (phải) rộng để ít xuống dòng */
+.cl .ci .ct{font-weight:600}
+.cr .ci .ct{font-size:clamp(14px,1.6vw,16px);line-height:1.45}
+.cl,.cr{gap:10px}
+.cl .ci{min-height:56px}
+.cr .ci{min-height:56px}
