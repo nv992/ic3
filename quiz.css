@@ -332,7 +332,7 @@ body.zlock{overflow:hidden}
 /* khung kết quả/giải thích nằm ngoài thẻ trắng, trên nền trang */
 #fb .fb{margin:16px 0 8px}
 /* ghép nối: thuật ngữ (trái) gọn, định nghĩa (phải) rộng để ít xuống dòng */
-.cl .ci .ct{font-weight:600}
+.cl .ci .ct,.cr .ci .ct{font-weight:600}
 .cr .ci .ct{font-size:clamp(14px,1.6vw,16px);line-height:1.45}
 .cl,.cr{gap:10px}
 .cl .ci{min-height:56px}
