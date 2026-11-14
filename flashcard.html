@@ -6,66 +6,76 @@
 <title>Thẻ ghi nhớ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="student.css?v=3">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="index.css?v=1">
 <style>
-.navrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.navrow .back{margin-bottom:12px}
+:root{--ok-soft:#e1f6e9;--okd:#15803d;--ok:#22c55e}
+/* Nút Quay lại */
+.navrow{margin-bottom:18px}
+.navrow .back{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px 0 6px;color:var(--blue);font-weight:600;font-size:15px;background:var(--primary-soft);box-shadow:none;transition:background .18s,color .18s,box-shadow .18s}
+.navrow .back .ar{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(79,107,255,.25);font-size:15px;line-height:1;transition:transform .18s}
+.navrow .back:hover{background:var(--primary);color:#fff;box-shadow:0 6px 16px rgba(79,107,255,.35);transform:none}
+.navrow .back:hover .ar{transform:translateX(-3px);color:var(--primary)}
+
 .fc-banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.fc-banner h1{margin:0;font-size:clamp(22px,4vw,32px);font-weight:800;line-height:1.1}
-.fc-banner p{margin:2px 0 0;font-weight:700}
-.fc-banner .ico{display:grid;place-items:center;flex:none;width:64px;height:64px;border-radius:50%;background:#fff;border:3px solid var(--line);font-size:34px}
+.fc-banner h1{margin:0;font-size:clamp(22px,4vw,30px);font-weight:800;line-height:1.2}
+.fc-banner p{margin:4px 0 0;font-weight:500;color:rgba(27,35,64,.7)}
+.fc-banner .ico{display:grid;place-items:center;flex:none;width:64px;height:64px;border-radius:50%;background:#fff;font-size:32px;box-shadow:0 8px 20px rgba(27,35,64,.15)}
 
-.fc-bar{display:flex;align-items:center;gap:14px;margin:0 0 18px}
-.fc-count{flex:none;font-weight:800;font-size:18px;min-width:70px}
-.fc-track{flex:1;height:18px;background:#fff;border:2.5px solid var(--line);border-radius:999px;overflow:hidden}
-.fc-fill{height:100%;width:0;background:var(--c);border-right:2.5px solid var(--line);transition:width .25s}
-.fc-stats{flex:none;font-weight:800;font-size:15px;display:flex;gap:10px}
-.fc-stats span{background:#fff;border:2px solid var(--line);border-radius:999px;padding:1px 12px}
+/* Thanh tiến độ */
+.fc-bar{display:flex;align-items:center;gap:16px;margin:0 0 20px}
+.fc-count{flex:none;font-weight:700;font-size:15px;min-width:70px;text-align:center;color:var(--blue);background:var(--primary-soft);border-radius:999px;padding:6px 16px}
+.fc-track{flex:1;height:10px;background:var(--surface2);border-radius:999px;overflow:hidden}
+.fc-fill{height:100%;width:0;background:linear-gradient(90deg,var(--c),var(--cd));border-radius:999px;transition:width .3s}
+.fc-stats{flex:none;font-weight:600;font-size:14.5px;display:flex;gap:10px}
+.fc-stats span{background:#fff;border-radius:999px;padding:5px 14px;box-shadow:var(--shadow-sm)}
 
+/* Thẻ lật */
 html{scrollbar-gutter:stable}
 .scene{perspective:2600px;margin:0 auto;max-width:720px}
-.card{display:grid;will-change:transform;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,.7,.3,1);cursor:pointer;min-height:min(420px,62vh);outline-offset:6px;border-radius:var(--radius)}
+.card{display:grid;will-change:transform;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.3,1);cursor:pointer;min-height:min(420px,62vh);outline-offset:6px;border-radius:30px}
 .card.flipped{transform:rotateY(180deg)}
-.face{grid-area:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:60px 28px 40px;text-align:center;border:3px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);backface-visibility:hidden;-webkit-backface-visibility:hidden;position:relative}
+.face{grid-area:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:60px 30px 44px;text-align:center;border-radius:30px;box-shadow:0 18px 44px rgba(27,35,64,.12);backface-visibility:hidden;-webkit-backface-visibility:hidden;position:relative}
 .face.front{background:#fff}
-.face.back{background:var(--ct);transform:rotateY(180deg)}
-.face .tag{position:absolute;top:16px;left:16px;font-weight:800;font-size:14px;background:var(--c);border:2.5px solid var(--line);border-radius:999px;padding:2px 14px;max-width:calc(100% - 100px)}
-.face .side{position:absolute;top:16px;right:16px;font-weight:800;font-size:14px;color:var(--muted)}
-.face .fico{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:var(--ct);border:3px solid var(--line);font-size:44px;line-height:1}
-.face.back .fico{background:#fff}
+.face.back{background:linear-gradient(160deg,var(--ct),#fff 85%);transform:rotateY(180deg)}
+.face .tag{position:absolute;top:18px;left:18px;font-weight:700;font-size:13px;color:var(--cd);background:var(--ct);border-radius:999px;padding:4px 14px;max-width:calc(100% - 110px)}
+.face .side{position:absolute;top:22px;right:22px;font-weight:700;font-size:12.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.face .fico{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:var(--ct);font-size:42px;line-height:1}
+.face.back .fico{background:#fff;box-shadow:var(--shadow-sm)}
 [hidden]{display:none!important}
-.face .pic{display:block;width:auto;height:auto;max-width:min(100%,400px);max-height:210px;object-fit:contain;background:#fff;border:3px solid var(--line);border-radius:18px;padding:8px}
-.face .txt{font-weight:800;font-size:clamp(24px,4.6vw,38px);line-height:1.2;max-width:34ch}
-.face.back .txt{font-weight:700;font-size:clamp(20px,3.6vw,28px);text-align:left;display:grid;gap:10px;max-width:40ch}
+.face .pic{display:block;width:auto;height:auto;max-width:min(100%,400px);max-height:210px;object-fit:contain;background:#fff;border-radius:18px;padding:8px;box-shadow:var(--shadow-sm)}
+.face .txt{font-weight:700;font-size:clamp(24px,4.4vw,36px);line-height:1.3;max-width:34ch}
+.face.back .txt{font-weight:600;font-size:clamp(19px,3.4vw,26px);text-align:left;display:grid;gap:12px;max-width:40ch}
 .face.back .txt p{margin:0}
-.face.back .txt p+p{padding-top:10px;border-top:2.5px dashed rgba(31,42,68,.25)}
 .face.back .txt.cols{grid-auto-flow:column;grid-template-columns:auto auto;gap:12px 40px;max-width:100%;justify-content:center}
-.face.back .txt.cols p+p{padding-top:0;border-top:0}
 .face.back .txt.one{text-align:center}
-.face.back .txt b{background:#fff;border-radius:8px;padding:0 6px}
-.face .hint{position:absolute;bottom:14px;left:0;right:0;font-weight:700;font-size:14px;color:var(--muted)}
+.face.back .txt b{background:#fff;border-radius:8px;padding:1px 8px;box-shadow:var(--shadow-sm);font-weight:700}
+.face .hint{position:absolute;bottom:16px;left:0;right:0;font-weight:500;font-size:13.5px;color:#9aa3bd}
 
+/* Nút điều khiển */
 .fc-ctrl{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:26px 0 14px}
-.fb{font:inherit;font-weight:800;font-size:17px;cursor:pointer;color:var(--ink);background:#fff;border:2.5px solid var(--line);border-radius:999px;padding:8px 24px;box-shadow:0 3px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .12s}
-.fb:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 5px 0 var(--ink)}
-.fb:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
-.fb:disabled{background:#e3e0d6;color:var(--muted);border-style:dashed;box-shadow:none;cursor:default}
-.fb.flip{background:var(--ink);color:#fff;padding:8px 32px}
-.fb.no{background:#ffdeda}
-.fb.yes{background:#d8f5e4}
-.fb.big{font-size:19px;padding:10px 30px}
-.fc-main{display:flex;align-items:flex-start;justify-content:center;gap:24px}
+.fb{font:inherit;font-weight:600;font-size:16px;cursor:pointer;color:var(--ink);background:#fff;border:0;border-radius:14px;padding:11px 24px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s,background .15s}
+.fb:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 18px rgba(27,35,64,.12)}
+.fb:active:not(:disabled){transform:scale(.98)}
+.fb:disabled{background:var(--surface2);color:#a2aac2;box-shadow:none;cursor:default}
+.fb.flip{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;padding:11px 32px;box-shadow:0 8px 20px rgba(79,107,255,.35)}
+.fb.flip:hover:not(:disabled){box-shadow:0 12px 26px rgba(79,107,255,.42)}
+.fb.no{background:#fde8e8;color:#7f1d1d}
+.fb.yes{background:linear-gradient(135deg,#34d27b,#16a34a);color:#fff;box-shadow:0 8px 20px rgba(34,197,94,.35)}
+.fb.yes:disabled{background:var(--surface2);color:#a2aac2;box-shadow:none}
+.fb.big{font-size:17px;padding:13px 30px}
+.fc-main{display:flex;align-items:flex-start;justify-content:center;gap:26px}
 .fc-main .scene{flex:1 1 auto;min-width:0;max-width:720px;margin:0}
-.fc-main .fc-ctrl{flex:none;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px;width:170px;margin:0}
+.fc-main .fc-ctrl{flex:none;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:12px;width:180px;margin:0}
 .fc-main .fc-ctrl .fb{width:100%;text-align:center;padding-left:12px;padding-right:12px}
 .fc-tools{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:6px}
-.fc-tools .fb{font-size:15px;padding:5px 18px}
+.fc-tools .fb{font-size:15px;padding:7px 18px}
 
-.fc-done{max-width:560px;margin:10px auto;text-align:center;background:#fff;border:3px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px 24px}
+/* Màn hình hoàn thành */
+.fc-done{max-width:560px;margin:10px auto;text-align:center;background:#fff;border-radius:28px;box-shadow:var(--shadow);padding:34px 26px}
 .fc-done .trophy{font-size:60px;line-height:1}
-.fc-done h2{margin:10px 0 6px;font-size:30px;font-weight:800}
-.fc-done p{margin:0 0 18px;font-weight:700;color:var(--muted)}
+.fc-done h2{margin:10px 0 6px;font-size:28px;font-weight:800}
+.fc-done p{margin:0 0 20px;font-weight:500;color:var(--muted)}
 .fc-done .fc-ctrl{margin:0}
 .fc-done a.fb{text-decoration:none;display:inline-block}
 
@@ -76,16 +86,17 @@ html{scrollbar-gutter:stable}
   .fc-main .fc-ctrl .fb{width:auto;flex:1}
 }
 @media(max-width:560px){
+  .navrow .back{height:36px;font-size:14px;padding:0 14px 0 5px}
+  .navrow .back .ar{width:26px;height:26px}
   .face.back .txt.cols{grid-auto-flow:row;grid-template-columns:1fr;grid-template-rows:none!important;justify-content:stretch;gap:10px}
-  .face.back .txt.cols p+p{padding-top:10px;border-top:2.5px dashed rgba(31,42,68,.25)}
 }
 @media(max-width:700px){
   .face .pic{max-height:150px}
   .fc-bar{flex-wrap:wrap}
   .fc-track{order:3;flex:1 1 100%}
   .fc-stats{margin-left:auto}
-  .face{padding:56px 18px 38px}
-  .fb{padding:8px 18px}
+  .face{padding:56px 20px 40px}
+  .fb{padding:10px 18px}
   .fb.big{flex:1}
 }
 @media(prefers-reduced-motion:reduce){.card{transition:none}}
@@ -114,7 +125,7 @@ function start(order){
 function shell(){
   const col=esc(DECK.color||'blue');
   $('app').innerHTML=`<div class="${col}">
-    <div class="navrow"><a class="back" href="${esc(backUrl())}">← Quay lại</a></div>
+    <div class="navrow"><a class="back" href="${esc(backUrl())}"><span class="ar">←</span>Quay lại</a></div>
     <div class="banner ${col} fc-banner">
       <div class="bmain"><div class="ico">${esc(DECK.icon||'🃏')}</div><div><h1>${esc(DECK.title)}</h1>${DECK.subtitle?`<p>${esc(DECK.subtitle)}</p>`:''}</div></div>
     </div>
@@ -165,7 +176,7 @@ function show(delay){
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   if(delay&&wasFlipped&&!reduce){setTimeout(()=>fill(c),220)}else fill(c);
   $('count').textContent=(pos+1)+' / '+queue.length;
-  $('fill').style.width=(pos/queue.length*100)+'%';$('fill').style.borderRightWidth=pos?'2.5px':'0';
+  $('fill').style.width=(pos/queue.length*100)+'%';
   $('sYes').textContent='✅ '+known.size;
   $('yes').disabled=true;
   $('flip').textContent='Lật thẻ';
