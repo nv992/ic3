@@ -212,7 +212,7 @@ function bridge(){tStop();sfx.win();confetti();$("card").innerHTML=`<div class="
 let sel,its,corr,q2,cur2;
 function start2(){stage=2;STEPS=N;pos=N/2;lives=LIVES;streak=0;tStart();q2=shuffle(["in","out","both","in","out","both"]);$("combo").style.display="none";place($("climber"),pos);hud();ask2()}
 function ask2(){
-  locked=false;$("card").classList.remove("done");sel=new Set();cur2=q2.shift();const t=cur2;
+  locked=false;$("card").classList.remove("done");sel=new Set();if(!q2.length)q2=shuffle(["in","out","both"]);cur2=q2.shift();const t=cur2;
   const inn=D.filter(d=>d[2]==="in"),out=D.filter(d=>d[2]==="out"),bo=D.filter(d=>d[2]==="both");
   let ok,bad;
   if(t==="both"){ok=bo;bad=[D.find(d=>d[1]==="Micro"),D.find(d=>d[1].startsWith("Tai nghe"))].concat(shuffle(inn.concat(out).filter(d=>d[1]!=="Micro"&&!d[1].startsWith("Tai nghe"))).slice(0,2))}
