@@ -1,0 +1,149 @@
+/* Giao diện trang chủ (index.html) – hiện đại, phẳng, không kẻ khung.
+   student.css vẫn giữ nguyên cho flashcard.html. */
+:root{
+  --bg:#f4f6fb; --ink:#1b2340; --muted:#6b7491; --card:#fff;
+  --surface:#f1f3f9; --surface2:#e7ebf6;
+  --primary:#4f6bff; --primary2:#7a5cff; --primary-soft:#e9edff; --blue:#3b55e6;
+  --radius:24px; --shadow:0 10px 30px rgba(27,35,64,.07); --shadow-sm:0 2px 8px rgba(27,35,64,.08);
+  --shadow-up:0 18px 40px rgba(27,35,64,.13);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;color:var(--ink);background:var(--bg);font-family:"Be Vietnam Pro","Inter","Segoe UI",system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.5}
+a{color:inherit}
+:focus-visible{outline:3px solid rgba(79,107,255,.55);outline-offset:2px;border-radius:12px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+/* ---------- Thanh trên ---------- */
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);box-shadow:0 1px 0 rgba(27,35,64,.05),0 6px 20px rgba(27,35,64,.04)}
+.topbar .wrap{display:flex;align-items:center;gap:12px;height:64px}
+.topbar a{display:flex;align-items:center;gap:12px;text-decoration:none;font-weight:700;font-size:18px}
+#siteIcon{display:grid;place-items:center;width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#ffd66b,#ffb347);font-size:21px;box-shadow:0 4px 10px rgba(255,179,71,.35)}
+#siteIcon:empty{display:none}
+main.wrap{padding:28px 20px 48px}
+
+/* ---------- Lời chào ---------- */
+.hero{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 32px}
+.hero h1{margin:0;font-size:clamp(28px,5vw,42px);line-height:1.15;font-weight:800;letter-spacing:-.5px}
+.hero h1 mark{background:linear-gradient(transparent 62%,rgba(255,200,61,.65) 62%);color:inherit;padding:0 4px}
+.hero p{margin:8px 0 0;color:var(--muted);font-weight:500}
+
+/* ---------- Chọn cấp học ---------- */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;background:#fff;border-radius:999px;padding:5px;box-shadow:var(--shadow-sm)}
+.tab{font:inherit;font-weight:600;font-size:15px;cursor:pointer;background:transparent;color:var(--muted);border:0;border-radius:999px;padding:8px 20px;transition:background .15s,color .15s}
+.tab:hover{color:var(--ink);background:var(--surface)}
+.tab[aria-pressed="true"]{background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;box-shadow:0 6px 14px rgba(79,107,255,.35)}
+.badge-group{font-weight:700;background:var(--primary-soft);color:var(--blue);border-radius:999px;padding:8px 20px}
+
+/* ---------- Tiêu đề mục ---------- */
+.sec-head{display:flex;align-items:center;gap:12px;margin:0 0 18px}
+.sec-head h2{margin:0;font-size:22px;font-weight:700;display:flex;align-items:center;gap:12px}
+.sec-head .sico{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:#fff;font-size:21px;box-shadow:var(--shadow-sm)}
+.prog{margin-bottom:40px}
+
+/* ---------- Màu theo level ---------- */
+.level,.banner,.rcard,.lrows{--c:#6aa9ff;--cd:#1f5fb8;--ct:#e3efff}
+.yellow{--c:#ffcf4d;--cd:#946200;--ct:#fff3d1}
+.orange{--c:#ffa24d;--cd:#a85200;--ct:#ffe8d2}
+.red{--c:#ff7b6b;--cd:#b3281a;--ct:#ffe3df}
+.green{--c:#4cd38a;--cd:#157a47;--ct:#dcf7e8}
+.blue{--c:#6aa9ff;--cd:#1f5fb8;--ct:#e3efff}
+.purple{--c:#a98aff;--cd:#5b34b8;--ct:#eee6ff}
+.teal{--c:#3fd6d0;--cd:#0f7a76;--ct:#d9f7f5}
+.pink{--c:#ff86bd;--cd:#b3346f;--ct:#ffe3f0}
+
+/* ---------- Thẻ Level ---------- */
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:22px}
+.level{display:flex;flex-direction:column;text-decoration:none;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:transform .2s,box-shadow .2s}
+.level:hover{transform:translateY(-6px);box-shadow:var(--shadow-up)}
+.level:active{transform:translateY(-2px)}
+.level .top{position:relative;background:linear-gradient(135deg,var(--c),var(--ct));padding:28px 16px 24px;display:grid;place-items:center;overflow:hidden}
+.level .top::before,.level .top::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.35)}
+.level .top::before{width:120px;height:120px;left:-36px;top:-40px}
+.level .top::after{width:80px;height:80px;right:-22px;bottom:-30px}
+.level .ico{position:relative;z-index:1;display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:#fff;font-size:42px;line-height:1;box-shadow:0 10px 24px rgba(27,35,64,.15);transition:transform .25s}
+.level:hover .ico{transform:rotate(-8deg) scale(1.08)}
+.level .body{padding:18px 18px 22px;display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+.level h3{margin:0;font-size:22px;font-weight:700;line-height:1.2}
+.count{font-weight:600;font-size:14px;color:var(--cd);background:var(--ct);border-radius:999px;padding:3px 14px}
+.go{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;background:var(--primary-soft);color:var(--blue);border-radius:999px;padding:9px 22px;transition:background .15s,color .15s}
+.go i{font-style:normal;transition:transform .15s}
+.level:hover .go{background:var(--primary);color:#fff}
+.level:hover .go i,a.k12:hover .go i{transform:translateX(4px)}
+
+/* ---------- Trang danh sách bài ôn ---------- */
+.navrow{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.back{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:600;font-size:15px;background:#fff;border-radius:999px;padding:9px 20px 9px 16px;box-shadow:var(--shadow-sm);transition:transform .15s,box-shadow .15s}
+.back:hover{transform:translateX(-2px);box-shadow:0 6px 16px rgba(27,35,64,.12)}
+.banner{display:block;background:linear-gradient(135deg,var(--c),var(--ct));border-radius:28px;padding:26px 28px;margin-bottom:30px;box-shadow:var(--shadow)}
+.bmain{display:flex;align-items:center;gap:18px}
+.banner .ico{display:grid;place-items:center;flex:none;width:72px;height:72px;border-radius:50%;background:#fff;font-size:36px;box-shadow:0 8px 20px rgba(27,35,64,.15)}
+.banner h1{margin:0;font-size:clamp(23px,4.2vw,32px);font-weight:800;line-height:1.2}
+.topic{margin-bottom:32px}
+.topic h2{margin:0 0 14px;font-size:clamp(18px,3vw,22px);font-weight:700}
+.lrows{display:grid;gap:12px}
+.lrow{display:flex;align-items:center;gap:18px;background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:14px 18px;transition:transform .15s,box-shadow .15s}
+.lrow:hover{transform:translateY(-2px);box-shadow:var(--shadow-up)}
+.lnum{flex:none;min-width:84px;text-align:center;font-weight:700;font-size:16px;color:var(--cd);background:var(--ct);border-radius:999px;padding:7px 16px}
+.lname{flex:1;min-width:0;font-weight:600;font-size:clamp(16px,2.1vw,19px);line-height:1.35}
+.lbtns{display:flex;gap:10px;flex:none}
+.lb{display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;color:var(--ink);text-decoration:none;border:0;border-radius:999px;padding:9px 22px;transition:transform .15s,background .15s,box-shadow .15s}
+a.lb:hover{transform:translateY(-2px)}
+a.lb:active{transform:scale(.97)}
+.lb.les{background:#fff3d1;color:#7a5200}
+a.lb.les:hover{background:#ffe9aa}
+.lb.rev{background:var(--primary);color:#fff;box-shadow:0 6px 14px rgba(79,107,255,.3)}
+a.lb.rev:hover{box-shadow:0 10px 20px rgba(79,107,255,.4)}
+span.lb.off{background:var(--surface);color:#a2aac2;box-shadow:none;cursor:default}
+
+/* ---------- Hỗ trợ học tập ---------- */
+.support{display:grid;grid-template-columns:minmax(240px,1fr) 2fr;gap:22px;align-items:stretch}
+.k12{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:230px;padding:24px;text-align:center;text-decoration:none;color:#fff;background:linear-gradient(135deg,#5b8cff,#8a63ff);border-radius:var(--radius);box-shadow:0 16px 34px rgba(91,108,255,.35);transition:transform .2s,box-shadow .2s}
+a.k12[href]:hover{transform:translateY(-6px);box-shadow:0 22px 44px rgba(91,108,255,.42)}
+.k12 .ico{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:#fff;font-size:42px;box-shadow:0 10px 24px rgba(0,0,0,.15)}
+.k12 b{font-size:22px;font-weight:700}
+.k12 .go{background:#fff;color:var(--blue)}
+.guide{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 26px}
+.guide h3{margin:0 0 16px;font-size:20px;font-weight:700}
+.guide ol{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:12px;counter-reset:s}
+.guide li{counter-increment:s;display:flex;align-items:flex-start;gap:12px;font-weight:500;font-size:16px}
+.guide li::before{content:counter(s);flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary2));color:#fff;font-weight:700;font-size:14px;margin-top:-1px}
+.guide li b{background:#fff3d1;border-radius:6px;padding:0 5px;font-weight:700}
+.pw{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600;background:var(--primary-soft);border-radius:16px;padding:12px 16px;margin-bottom:12px}
+.pw code{font:inherit;font-weight:700;letter-spacing:.5px;background:#fff;border-radius:10px;padding:3px 14px;box-shadow:var(--shadow-sm);user-select:all}
+.copy{font:inherit;font-weight:600;font-size:14.5px;cursor:pointer;color:#fff;background:var(--primary);border:0;border-radius:999px;padding:7px 18px;margin-left:auto;transition:transform .1s,background .15s}
+.copy:hover{background:var(--blue)}
+.copy:active{transform:scale(.95)}
+.vid{font-weight:600}
+.vid a{font-weight:700;color:var(--blue)}
+
+.empty{padding:44px 20px;text-align:center;color:var(--muted);font-weight:600;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+
+/* ---------- Responsive ---------- */
+@media(max-width:700px){
+  body{font-size:15.5px}
+  .wrap{padding:0 14px}
+  main.wrap{padding:18px 14px 36px}
+  .topbar .wrap{height:58px}
+  .support{grid-template-columns:1fr}
+  .k12{min-height:170px}
+  .levels{grid-template-columns:1fr;gap:16px}
+  .level{flex-direction:row;align-items:stretch}
+  .level .top{flex:none;width:112px;padding:0}
+  .level .ico{width:66px;height:66px;font-size:34px}
+  .level .body{flex:1;align-items:flex-start;text-align:left;gap:8px;padding:14px 16px;justify-content:center}
+  .level h3{font-size:20px}
+  .go{padding:7px 16px;font-size:14px}
+  .banner{padding:18px}
+  .banner .ico{width:58px;height:58px;font-size:30px}
+  .guide{padding:20px 18px}
+  .copy{margin-left:0}
+  .lrow{flex-wrap:wrap;gap:12px;padding:14px}
+  .lnum{min-width:64px;font-size:15px;padding:5px 12px}
+  .lname{flex:1 1 calc(100% - 90px)}
+  .lbtns{width:100%}
+  .lb{flex:1}
+  .tabs{width:100%}
+  .tab{flex:1;padding:8px 12px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}

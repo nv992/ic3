@@ -3,14 +3,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://ldemozqloryuzuxrlzho.supabase.co" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="quiz.css?v=8">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="quiz.css?v=16">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
 </head><body>
-<header class="topbar" id="tb"><div class="wrap"><a class="brand" href="index.html"><span id="siteIcon"></span><span id="siteTitle"></span></a><div class="who" id="who" hidden></div></div></header>
-<div class="wrap navrow"><a class="back" id="backLink" href="index.html">← Quay lại</a></div>
+<header class="topbar" id="tb"><div class="wrap"><div class="tl"><a class="brand" href="index.html"><span id="siteIcon"></span><span id="siteTitle"></span></a><a class="back" id="backLink" href="index.html"><span class="ar">←</span>Quay lại</a></div><div class="qname" id="qname" hidden></div><div class="who" id="who" hidden></div></div></header>
 <main class="wrap" id="app"><div class="card">Đang tải…</div></main>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -23,12 +22,13 @@ const loadStu=async id=>{try{const r=await sb.rpc('list_students_v2',{p_class:St
 let PRE=null; // danh sách học sinh của lớp đã nhớ, tải sẵn song song với bài + danh sách lớp
 // Tên + biểu tượng trang (lấy từ data.js, giống trang chủ)
 {const D=window.SITE_DATA||{};$('#siteIcon').textContent=D.siteIcon||'';$('#siteTitle').textContent=D.siteTitle||'Trang chủ'}
-// Nút Quay lại: về đúng trang danh sách bài của level (index.html truyền &b=nhóm/chương trình/level)
+// Nút Quay lại: ở màn chọn tên → về danh sách bài của level (index.html truyền &b=nhóm/chương trình/level);
+// đang làm bài / xem kết quả → về màn chọn trường, lớp, tên
 $('#backLink').addEventListener('click',e=>{
-  if(onPick||!window.showPick)return;           // ở màn chọn tên: về trang danh sách bài như cũ
+  if(onPick||!window.showPick)return;
   e.preventDefault();
   if(Q&&fin===false&&!REVM&&!confirm('Em muốn thoát bài đang làm? Kết quả sẽ không được lưu.'))return;
-  window.showPick();                            // đang làm bài / xem kết quả: về màn chọn trường, lớp, tên
+  window.showPick();
 });
 {const b=(new URLSearchParams(location.search).get('b')||'').replace(/[^\d\/]/g,'');$('#backLink').href='index.html#/'+b}
 const shuf=a=>{a=a.slice();for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]]}return a};
@@ -38,14 +38,18 @@ function prep(qs){return shuf(qs.map(q=>{
   if((q.type==='single'||q.type==='multi')&&Array.isArray(q.options)){
     const idx=shuf(q.options.map((_,k)=>k));
     q.options=idx.map(k=>q.options[k]);q.answer=q.answer.map(x=>idx.indexOf(x));
-  }else if((q.type==='match'||q.type==='drag'||q.type==='connect')&&Array.isArray(q.pairs))q.pairs=shuf(q.pairs);
+  }else if((q.type==='match'||q.type==='drag'||q.type==='connect'||q.type==='tf')&&Array.isArray(q.pairs))q.pairs=shuf(q.pairs);
   else if(q.type==='sort'&&Array.isArray(q.items))q.items=shuf(q.items);
   return q}))}
-const isPair=q=>q.type==='drag'||q.type==='match'||q.type==='connect';
+const isPair=q=>q.type==='drag'||q.type==='match'||q.type==='connect'||q.type==='tf';
+// type "tf" = bảng 2 cột Có/Không hoặc Đúng/Sai: mỗi dòng 1 mệnh đề + 2 nút bấm (không có danh sách thả xuống)
+const tfc=q=>Array.isArray(q.choices)&&q.choices.length>=2?q.choices.slice(0,2).map(String):(q.pairs.some(p=>/^(đúng|sai)$/i.test(String(p[1]).trim()))?['Đúng','Sai']:['Có','Không']);
 // type "match" = ghép bằng danh sách thả xuống; type "connect" = bấm mục trái rồi bấm mục phải để nối
 const isConn=q=>q.type==='connect';
 const O=o=>typeof o==='string'?{text:o}:(o||{});
 const img=u=>/^(https?:\/\/|images\/|data:image\/)/i.test(u||'')?esc(u):'';
+// Nhãn bên trái của câu ghép/kéo thả: nếu là đường dẫn ảnh thì hiện <img>, ngược lại hiện chữ
+const lbl=u=>img(u)?`<img class="pimg" src="${img(u)}" alt="" title="Bấm để phóng to" draggable="false">`:esc(u);
 const lab=(o,k)=>{o=O(o);return o.text||o.alt||'Hình '+(k+1)};
 
 
@@ -95,7 +99,7 @@ function showWho(){
   const ini=(who.name.trim().split(/\s+/).pop()||'?').charAt(0).toUpperCase();
   const w=$('#who');
   w.innerHTML=`<span class="av">${esc(ini)}</span><span class="wt"><b>${esc(who.name)}</b><small>${who.code?esc(who.code)+' · ':''}${esc(clsLabel(who.cls))}, ${esc(who.school)}</small></span>`;
-  w.hidden=false;$('#tb').classList.add('has-who');onPick=false;
+  w.hidden=false;$('#qname').hidden=!quiz||!quiz.title;$('#tb').classList.add('has-who');onPick=false;
 }
 // ---------- Lịch sử làm bài (lưu trên máy của học sinh, theo bài + học sinh) ----------
 const hkey=sid=>'qh2|'+qid+'|'+sid;
@@ -145,14 +149,14 @@ function begin(){if(fxStop)fxStop();Q=prep(quiz.questions);i=0;right=0;pts=0;t0=
   if(l0.cls)PRE={id:l0.cls,p:Promise.resolve(loadStu(l0.cls)).catch(()=>({data:null}))};
   const [{data},{data:cl}]=await Promise.all([sb.from('quizzes').select('*').eq('id',qid||'').maybeSingle(),sb.rpc('list_classes')]);
   if(!data){app.innerHTML='<div class="card"><h1>Ôi, không tìm thấy bài ôn 😢</h1><p>Em hãy kiểm tra lại đường link hoặc nhờ thầy cô gửi lại nhé.</p><a class="go alt" href="index.html">← Về trang chủ</a></div>';return}
-  quiz=data;document.title=quiz.title||'Làm bài';
+  quiz=data;document.title=quiz.title||'Làm bài';$('#qname').innerHTML='<span>'+esc(quiz.title||'')+'</span>';$('#qname').hidden=!quiz.title;
   CL=cl||[];
   async function showPick(){
     if(fxStop)fxStop();
-    document.body.classList.remove('hasnav');$('#who').hidden=true;$('#tb').classList.remove('has-who');
+    document.body.classList.remove('hasnav');$('#who').hidden=true;$('#qname').hidden=!(quiz&&quiz.title);$('#tb').classList.remove('has-who');
     Object.assign(pk,{school:'',cid:'',cname:'',sid:'',sname:''});STU=[];HIST=null;REVM=false;onPick=true;scrollTo(0,0);
   const schools=[...new Set(CL.map(c=>c.school))].sort(NAT);
-  app.innerHTML=`<section class="hero"><h1>Chào em! <mark>Sẵn sàng</mark> chưa? 👋</h1><p>Chọn trường, lớp và tên của em để bắt đầu nhé.</p><span class="qbadge">📝 ${esc(quiz.title)}</span></section>
+  app.innerHTML=`<section class="hero"><h1>Chào em! <mark>Sẵn sàng</mark> chưa? 👋</h1><p>Chọn trường, lớp và tên của em để bắt đầu nhé.</p></section>
   <div class="card pickcard">
     <div class="step" id="s1"><div class="shead"><b>Em học trường nào?</b></div>
       <select class="big" id="sc"><option value="">-- Chọn trường --</option>${schools.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div>
@@ -200,13 +204,15 @@ function show(rv){
     if(q.type==='single'||q.type==='multi')b+=(q.type==='multi'?'<p class="hint">Chọn nhiều đáp án</p>':'')+`<div class="opts${q.options.some(o=>img(O(o).img))?' imgs n'+Math.min(q.options.length,4):''}">${q.options.map((o,k)=>{o=O(o);const u=img(o.img);return `<button class="opt${u?' pic':''}" data-k="${k}"><span class="mkr${q.type==='multi'?' sq':''}"></span>${u?`<img src="${u}" alt="${esc(o.alt||'')}"><span class="zb" role="button" tabindex="0" aria-label="Phóng to ảnh" data-src="${u}">🔍</span>`:''}${o.text?`<span class="tx">${esc(o.text)}</span>`:''}<span class="rs"></span></button>`}).join('')}</div>`;
     else if(q.type==='sort')b+='<p class="hint">Bấm chọn 1 thẻ rồi bấm vào khung nhóm để xếp vào, hoặc kéo-thả thẻ vào khung. Bấm vào thẻ đã xếp để đưa nó trở lại.</p><div class="sx"></div>';
     else if(isConn(q))b+='<p class="hint">Bấm chọn 1 mục bên trái rồi bấm mục tương ứng bên phải để nối.</p><div class="cn"></div>';
+    else if(q.type==='tf'){const c=tfc(q);
+      b+=`<div class="tfl"><div class="tfh"><span></span><span>${esc(c[0])}</span><span>${esc(c[1])}</span></div>${q.pairs.map((p,k)=>`<div class="trow" data-k="${k}"><span class="tx">${lbl(p[0])}</span><button type="button" class="tbtn" data-k="${k}" data-v="${esc(c[0])}">${esc(c[0])}</button><button type="button" class="tbtn" data-k="${k}" data-v="${esc(c[1])}">${esc(c[1])}</button></div>`).join('')}</div>`}
     else if(q.type==='match'){const vs=Array.isArray(q.choices)&&q.choices.length?[...new Set([...q.choices,...q.pairs.map(x=>x[1])])]:[...new Set(q.pairs.map(x=>x[1]))].sort();
-      b+=`<div>${q.pairs.map((p,k)=>`<div class="mrow"><span class="tx">${esc(p[0])}</span><div class="mr"><select data-k="${k}"><option value="">-- Lựa chọn đáp án --</option>${vs.map(v=>`<option>${esc(v)}</option>`).join('')}</select></div></div>`).join('')}</div>`}
+      b+=`<div>${q.pairs.map((p,k)=>`<div class="mrow"><span class="tx">${lbl(p[0])}</span><div class="mr"><select data-k="${k}"><option value="">-- Lựa chọn đáp án --</option>${vs.map(v=>`<option>${esc(v)}</option>`).join('')}</select></div></div>`).join('')}</div>`}
     else b+='<p class="hint">Chạm vào chữ rồi chạm vào ô, hoặc kéo thả</p><div class="dq"></div>';
   }
   const top=rv?`<div class="top"><span class="cnt">Câu ${i+1}/${Q.length}</span><span class="rvtag">👁 Xem lại bài làm · Lần ${REC.n}</span></div>`:topbar(i/Q.length);
   const foot=rv?`<button class="go alt" id="pv"${i?'':' disabled'}>← Trước</button><button class="go alt" id="rr">📊 Xem kết quả</button><button class="go" id="nx"${i+1<Q.length?'':' disabled'}>Tiếp theo →</button>`:'<button class="go" id="ok">Kiểm Tra ✓</button>';
-  app.innerHTML=layout(`${top}<div class="card">${b}<div id="fb"></div><div class="ft${rv?' rv':''}">${foot}</div></div>`,rv?nav(REC.res,Q.length,i,true):nav(RS,Q.length,i,false));
+  app.innerHTML=layout(`${top}<div class="card">${b}<div class="ft${rv?' rv':''}">${foot}</div></div><div id="fb"></div>`,rv?nav(REC.res,Q.length,i,true):nav(RS,Q.length,i,false));
   if(q.type==='drag'){P=q.pairs.map(()=>null);drawDrag()}
   if(q.type==='sort'){P=q.items.map(()=>null);SS=null;drawSort()}
   if(isConn(q)){P=q.pairs.map(()=>null);RV=q.rv=q.rv||shuf(q.pairs.map(x=>x[1]));CS=null;drawConn()}
@@ -227,6 +233,7 @@ function restore(q,a){
   if(q.type==='single'||q.type==='multi')document.querySelectorAll('.opt').forEach(t=>{if(a.includes(+t.dataset.k))t.classList.add('on')});
   else if(q.type==='fill')document.querySelectorAll('.fillq input').forEach((x,k)=>x.value=a[k]||'');
   else if(q.type==='match')document.querySelectorAll('.mrow select').forEach((s,k)=>s.value=a[k]||'');
+  else if(q.type==='tf')document.querySelectorAll('.trow').forEach((r,k)=>r.querySelectorAll('.tbtn').forEach(b=>b.classList.toggle('on',a[k]===b.dataset.v)));
   else if(q.type==='sort'){P=a.map(x=>x<0?null:x);drawSort()}
   else if(isConn(q)){P=a.map(x=>x||null);drawConn()}
   else if(q.type==='drag'){P=a.map(x=>x||null);drawDrag()}
@@ -240,10 +247,15 @@ let selIdx=-1;
 const chip=(v,bi)=>`<span class="chip${bi!==undefined&&sel===v&&selIdx===bi?' sel':''}" draggable="true" data-v="${esc(v)}"${bi!==undefined?` data-bi="${bi}"`:''}>${esc(v)}</span>`;
 function drawDrag(){
   const q=Q[i],bank=[],cnt={};q.pairs.forEach(x=>cnt[x[1]]=(cnt[x[1]]||0)+1);P.forEach(x=>{if(x)cnt[x]--});Object.keys(cnt).forEach(v=>{for(let n=0;n<cnt[v];n++)bank.push(v)});bank.sort();
-  $('.dq').innerHTML=q.pairs.map((x,k)=>`<div class="row"><span class="lf">${esc(x[0])}</span>→<span class="slot" data-k="${k}">${P[k]?chip(P[k]):''}</span></div>`).join('')+`<div class="bank">${bank.map((v,bi)=>chip(v,bi)).join('')}</div>`;
+  $('.dq').classList.toggle('pics',q.pairs.some(x=>!!img(x[0])));
+  $('.dq').innerHTML=q.pairs.map((x,k)=>`<div class="row"><span class="lf">${lbl(x[0])}</span><span class="ar">→</span><span class="slot" data-k="${k}">${P[k]?chip(P[k]):''}</span></div>`).join('')+`<div class="bank">${bank.map((v,bi)=>chip(v,bi)).join('')}</div>`;
 }
 let DSRC=-1;
 function put(k,v,src=-1){if(locked)return;const q=Q[i],tot=q.pairs.filter(x=>x[1]===v).length,used=P.filter(x=>x===v).length;if(src<0&&P[k]!==v&&used>=tot)return;if(src>-1)P[src]=null;P[k]=v;sel=null;drawDrag()}
+document.addEventListener('click',e=>{
+  const tb=e.target.closest&&e.target.closest('.tbtn');
+  if(tb){if(locked||tb.disabled)return;const on=tb.classList.contains('on');tb.closest('.trow').querySelectorAll('.tbtn').forEach(x=>x.classList.remove('on'));if(!on)tb.classList.add('on');return}
+});
 document.addEventListener('click',e=>{
   if(locked||!Q||!$('.dq'))return;
   const c=e.target.closest('.chip'),s=e.target.closest('.slot');if(!c&&!s)return;
@@ -306,6 +318,7 @@ function collect(q){
   if(q.type==='fill')return [...document.querySelectorAll('.fillq input')].map(x=>x.value.trim());
   if(q.type==='sort')return P.map(x=>x===null?-1:x);
   if(isConn(q))return P.map(x=>x||'');
+  if(q.type==='tf')return [...document.querySelectorAll('.trow')].map(r=>{const b=r.querySelector('.tbtn.on');return b?b.dataset.v:''});
   if(q.type==='match')return [...document.querySelectorAll('.mrow select')].map(x=>x.value);
   if(q.type==='drag')return P.slice();
   return [...document.querySelectorAll('.opt.on')].map(x=>+x.dataset.k);
@@ -329,6 +342,7 @@ function check(){
   if(locked)return;const q=Q[i],a=collect(q);
   if((q.type==='single'||q.type==='multi')&&!a.length)return alert('Em hãy chọn đáp án nhé');
   if(isConn(q)&&a.every(x=>!x))return alert('Em hãy nối các mục nhé');
+  if(q.type==='tf'&&a.every(x=>!x))return alert('Em hãy chọn đáp án nhé');
   if(q.type==='sort'&&a.every(x=>x<0))return alert('Em hãy xếp các thẻ vào nhóm nhé');
   const r=ok(q,a),f=frac(q,a);locked=true;if(r)right++;pts+=f;A.push(a);RS.push(f);mark(q,a);
   const p=Math.min(Math.max((i+1)/Q.length*100,3),97);$('#pf').style.width=p+'%';
@@ -353,6 +367,10 @@ function mark(q,a){
     document.querySelectorAll('.cl .ci').forEach((t,k)=>{const g=a[k]===q.pairs[k][1];t.classList.add(g?'good':'bad');if(!g)t.querySelector('.ct').insertAdjacentHTML('beforeend',`<div class="ans2">✓ ${esc(q.pairs[k][1])}</div>`)});
     document.querySelectorAll('.cr .ci').forEach(t=>t.classList.add('lock'));
   }
+  else if(q.type==='tf')document.querySelectorAll('.trow').forEach((r,k)=>{
+    const ans=q.pairs[k][1],g=a[k]===ans;r.classList.add(g?'good':'bad');
+    r.querySelectorAll('.tbtn').forEach(b=>{b.disabled=true;if(b.dataset.v===ans)b.classList.add('right');else if(b.classList.contains('on'))b.classList.add('wrong')});
+  });
   else if(q.type==='match')document.querySelectorAll('.mrow').forEach((r,k)=>{
     const g=a[k]===q.pairs[k][1],s=r.querySelector('select');
     s.disabled=true;s.classList.add(g?'good':'bad');if(!g)r.querySelector('.mr').insertAdjacentHTML('beforeend',`<div class="ans2">✓ ${esc(q.pairs[k][1])}</div>`);
@@ -506,7 +524,7 @@ async function save(){
   function close(){if(!ov||ov.hidden)return;ov.hidden=true;im.removeAttribute('src');document.body.classList.remove('zlock');pts.clear()}
   // Bấm ảnh câu hỏi hoặc nút 🔍 trên ảnh đáp án (chặn không cho chọn nhầm đáp án)
   document.addEventListener('click',e=>{
-    const t=e.target.closest&&e.target.closest('.qimg,.zb');if(!t)return;
+    const t=e.target.closest&&e.target.closest('.qimg,.pimg,.zb');if(!t)return;
     e.preventDefault();e.stopPropagation();
     open(t.classList.contains('zb')?t.dataset.src:t.currentSrc||t.src,t.alt);
   },true);
