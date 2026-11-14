@@ -19,7 +19,7 @@ button.dg{background:#d92d20}button.dg:disabled{background:#e9e3cf;color:#999;cu
 </style></head><body><main id="app"></main>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const sb=supabase.createClient(SB.url,SB.key),app=$('#app'),TYPES=['single','multi','fill','drag','match','connect','sort'];
+const sb=supabase.createClient(SB.url,SB.key),app=$('#app'),TYPES=['single','multi','fill','drag','match','connect','tf','sort'];
 const rc=()=>Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.random()*32|0]).join('');
 // Chỉ hiện dữ liệu của N ngày gần nhất (tính cả hôm nay). Đổi số này nếu muốn dài/ngắn hơn.
 const KEEP_DAYS=28;   // 4 tuần
@@ -377,7 +377,7 @@ async function vQz(){
     try{qs=JSON.parse($('#qj').value)}catch(e){return $('#m').textContent='JSON sai: '+e.message}
     if(!/^[\w-]+$/.test(id)||!title)return $('#m').textContent='Mã bài chỉ gồm chữ/số/gạch ngang; cần có tiêu đề';
     if(!Array.isArray(qs)||!qs.length)return $('#m').textContent='Cần một danh sách câu hỏi dạng [ ... ]';
-    const bi=qs.findIndex(q=>!TYPES.includes(q.type)||!q.text||(q.type==='sort'?!(Array.isArray(q.groups)&&q.groups.length>1&&Array.isArray(q.items)&&q.items.length&&q.items.every(x=>x&&x.text&&x.group>=0&&x.group<q.groups.length)):q.type==='drag'||q.type==='match'||q.type==='connect'?!q.pairs:!q.answer));
+    const bi=qs.findIndex(q=>!TYPES.includes(q.type)||!q.text||(q.type==='sort'?!(Array.isArray(q.groups)&&q.groups.length>1&&Array.isArray(q.items)&&q.items.length&&q.items.every(x=>x&&x.text&&x.group>=0&&x.group<q.groups.length)):q.type==='drag'||q.type==='match'||q.type==='connect'||q.type==='tf'?!q.pairs:!q.answer));
     if(bi>=0)return $('#m').textContent='Câu hỏi không hợp lệ (câu '+(bi+1)+')';
     const {error}=await sb.from('quizzes').upsert({id,title,questions:qs});
     if(error)return $('#m').textContent=error.message;
