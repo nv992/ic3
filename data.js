@@ -47,7 +47,7 @@ window.SITE_DATA = {
                       "nums": "*",
                       "name": "Mini Game",
                       "lessonUrl": "",
-                      "reviewUrl": "climbing"
+                      "reviewUrl": "https://nv992.github.io/ic3/climbing"
                     }
                   ]
                 }
