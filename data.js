@@ -47,7 +47,7 @@ window.SITE_DATA = {
                       "nums": "*",
                       "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
-                      "reviewUrl": "quiz.html?q=splv1_12345"
+                      "reviewUrl": "quiz.html?q=splv1_123456"
                     },
                     {
                       "nums": "*",
