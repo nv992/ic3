@@ -42,6 +42,12 @@ window.SITE_DATA = {
                       "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
                       "reviewUrl": "quiz.html?q=splv1_1234"
+                    },
+                    {
+                      "nums": "*",
+                      "name": "Mini Game",
+                      "lessonUrl": "",
+                      "reviewUrl": "climbing.html"
                     }
                   ]
                 }
