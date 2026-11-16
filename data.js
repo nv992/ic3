@@ -38,7 +38,7 @@ window.SITE_DATA = {
                       "reviewUrl": "quiz.html?q=splv1_4"
                     },
                     {
-                      "nums": "5",
+                      "nums": "5, 6",
                       "name": "Tập tin và Thư mục",
                       "lessonUrl": "flashcard.html?d=splv1_56",
                       "reviewUrl": ""
