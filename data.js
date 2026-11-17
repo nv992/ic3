@@ -51,21 +51,15 @@ window.SITE_DATA = {
                     },
                     {
                       "nums": "*",
-                      "name": "Mini Game",
+                      "name": "Thực hành tạo tập tin và thư mục",
                       "lessonUrl": "",
-                      "reviewUrl": "https://nv992.github.io/ic3/climbing"
+                      "reviewUrl": "https://nv992.github.io/ic3/file_folder"
                     },
                     {
                       "nums": "*",
-                      "name": "Thực hành tạo tập tin",
+                      "name": "Mini Game",
                       "lessonUrl": "",
-                      "reviewUrl": "https://nv992.github.io/ic3/word"
-                    },
-                    {
-                      "nums": "8",
-                      "name": "Thực hành tạo thư mục",
-                      "lessonUrl": "",
-                      "reviewUrl": "https://nv992.github.io/ic3/folder"
+                      "reviewUrl": "https://nv992.github.io/ic3/climbing"
                     }
                   ]
                 }
@@ -142,6 +136,12 @@ window.SITE_DATA = {
                       "name": "Bộ định vị tài nguyên thống nhất",
                       "lessonUrl": "flashcard.html?d=splv3_5",
                       "reviewUrl": "quiz.html?q=splv3_5"
+                    },
+                    {
+                      "nums": "6 + 7",
+                      "name": "Trình duyệt Web",
+                      "lessonUrl": "flashcard.html?d=splv3_67",
+                      "reviewUrl": "quiz.html?q=splv3_67"
                     }
                   ]
                 }
