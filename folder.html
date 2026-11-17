@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bài thực hành 2: Tạo thư mục</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📁</text></svg>">
+<style>
+:root{--bg:#eef1f6;--panel:#fff;--ink:#1d2433;--mute:#5d6678;--line:#d3d9e4;--acc:#0067c0;--ok:#1b7f3b;--okbg:#e4f5ea;--warn:#a15c00;--sel:#cce8ff;--desk1:#2d6cb5;--desk2:#1a3f73;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151c;--panel:#1c212c;--ink:#e8ebf2;--mute:#9aa3b5;--line:#343c4d;--acc:#6aa9ff;--ok:#5fd186;--okbg:#17301f;--warn:#f0b35a;--sel:#2b3f5c;--desk1:#1c3d6e;--desk2:#0c1c38;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12151c;--panel:#1c212c;--ink:#e8ebf2;--mute:#9aa3b5;--line:#343c4d;--acc:#6aa9ff;--ok:#5fd186;--okbg:#17301f;--warn:#f0b35a;--sel:#2b3f5c;--desk1:#1c3d6e;--desk2:#0c1c38;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+button{font:inherit;cursor:pointer}
+.app{display:grid;grid-template-columns:minmax(0,1fr) 430px;grid-template-rows:minmax(0,1fr);gap:10px;height:100vh;height:100dvh;padding:8px 6px}
+.sim{position:relative;min-height:0;height:100%;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:linear-gradient(135deg,var(--desk1),var(--desk2))}
+.task{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-height:0;overflow:auto}
+@media (max-width:860px){html,body{height:auto;overflow:auto}.app{grid-template-columns:1fr;grid-template-rows:auto;height:auto}.task{order:-1}.sim{height:62vh;min-height:380px}}
+/* desktop */
+.icons{padding:16px}
+.ico{width:88px;text-align:center;color:#fff;font-size:13px;padding:8px 4px;border:1px solid transparent;border-radius:4px;background:none;text-shadow:0 1px 2px #0008}
+.ico svg{display:block;margin:0 auto 4px}
+.ico:hover,.ico:focus-visible,.ico.sel{background:#ffffff33;border-color:#ffffff66;outline:none}
+.hint{position:absolute;left:18px;bottom:56px;color:#fff;font-size:14px;text-shadow:0 1px 2px #0008}
+.bar{position:absolute;left:0;right:0;bottom:0;height:42px;background:#101828e6;color:#fff;display:flex;align-items:center;padding:0 12px;gap:16px;font-size:13px}
+.bar .t{margin-left:auto}
+/* explorer */
+#ex{position:absolute;inset:10px 10px 52px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 30px #0006;display:none;flex-direction:column;overflow:hidden;font-size:13px}
+#ex.on{display:flex}
+.tb{display:flex;align-items:flex-end;gap:8px;background:var(--bg);padding:6px 0 0 6px}
+.tab{background:var(--panel);padding:7px 12px;border-radius:8px 8px 0 0;display:flex;gap:8px;align-items:center;min-width:130px}.tab .tx{margin-left:auto;color:var(--mute)}
+.plus{padding:6px 8px;color:var(--mute)}
+.wcs{margin-left:auto;display:flex;align-self:stretch}.wcs span{width:42px;display:grid;place-items:center;color:var(--ink)}
+.wcs .xc{cursor:pointer}.wcs .xc:hover{background:#e81123;color:#fff}
+.nv{display:flex;gap:12px;align-items:center;padding:6px 10px;color:var(--ink)}
+.addr{flex:1;border:1px solid var(--line);border-radius:5px;padding:5px 10px;min-width:0;white-space:nowrap;overflow:hidden}
+.sr{width:190px;border:1px solid var(--line);border-radius:5px;padding:5px 10px;color:var(--mute);white-space:nowrap;overflow:hidden}
+@media (max-width:700px){.sr{display:none}}
+.cb2{display:flex;gap:14px;padding:6px 12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);align-items:center;white-space:nowrap;overflow:hidden}
+.g{color:var(--mute);opacity:.55}.cb2 .r{margin-left:auto}
+.xb{flex:1;display:flex;min-height:0}
+.sd{width:190px;flex:none;padding:8px;border-right:1px solid var(--line);overflow:auto}
+.si{display:flex;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;white-space:nowrap}
+.si:hover{background:var(--bg)}.si.sel{background:var(--sel);outline:1px solid var(--acc)}.si.sub2{padding-left:26px;color:var(--ink)}
+.sd hr{border:0;border-top:1px solid var(--line);margin:6px 4px}
+.ls{flex:1;min-width:0;overflow:auto}
+.g4{display:grid;grid-template-columns:minmax(140px,2.2fr) 1.5fr 1.3fr .6fr;gap:8px;padding:4px 12px;align-items:center;white-space:nowrap}
+.hd{color:var(--mute);padding:7px 12px;position:sticky;top:0;background:var(--panel)}
+.fr{border-radius:4px;margin:0 4px}.fr:hover{background:var(--bg)}.fr.sel{background:var(--sel)}
+.fr span:not(.nmc){overflow:hidden;text-overflow:ellipsis;color:var(--mute)}
+.nmc{display:flex;gap:8px;align-items:center;min-width:0}
+.fi{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:3px;color:#fff;font-size:10px;flex:none}
+.fi.w{background:#2b579a}.fi.x{background:#1d7044}.fi.z{background:#d8a31e}.fi.v{background:#7b8794}
+.ren{font:inherit;border:1px solid var(--ink);background:var(--panel);color:var(--ink);padding:0 3px;width:100%;min-width:0;outline:none}
+.stt{padding:4px 12px;font-size:12px;color:var(--mute);border-top:1px solid var(--line)}
+/* context menu */
+.cm,.sub{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px #0005;padding:4px;font-size:13px}
+.cm{position:absolute;z-index:20;width:240px;display:none}
+.mi{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:5px;position:relative;cursor:default;white-space:nowrap}
+.mi:hover{background:var(--bg)}.mi i{font-style:normal;width:16px;text-align:center;color:var(--acc)}.mi .k{margin-left:auto;color:var(--mute)}
+.sp{height:1px;background:var(--line);margin:4px 2px}
+.sub{display:none;position:absolute;left:100%;top:-5px;width:232px}
+.mi:hover>.sub,.mi.open>.sub{display:block}
+.cm.flip .sub{left:auto;right:100%}
+/* tasks */
+.th{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}.th h2{margin:0;font-size:17px}.th span{color:var(--mute);font-weight:600;font-size:14px;white-space:nowrap}
+.tk{margin-bottom:6px}
+.tk .m{display:flex;gap:10px;align-items:center;padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--acc) 10%,var(--panel));font-size:14px;font-weight:600;line-height:1.35}
+.c{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700}.c.ok{background:var(--ok);border-color:var(--ok)}
+.st{margin:4px 0 0 18px;padding:5px 8px;border-radius:8px;border:1px dashed var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--mute)}
+.st.done{background:var(--bg);border-color:transparent;color:var(--ink)}.st.cur{color:var(--ink);border-color:var(--acc)}.st.next{opacity:.6}
+.st>span:nth-child(2),.tk .m>span:nth-child(2){flex:1;min-width:0}
+.hint2{flex-basis:100%;font-size:12px;color:var(--mute);padding-left:28px}
+.res{margin-top:8px;font-weight:700}.res.done{color:var(--ok)}
+.msg{margin-top:6px;font-size:13px;color:var(--warn)}.msg.good{color:var(--ok)}
+.reset{margin-top:8px;padding:4px 10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:5px}
+.sd{width:215px}
+.si{gap:6px;align-items:center;padding:6px 8px 6px 4px}
+.si.sel{outline:1px solid var(--ink)}
+.si svg{width:18px;height:18px;flex:none}.si .lx{width:18px;text-align:center;flex:none;line-height:1}
+.si .nm{overflow:hidden;text-overflow:ellipsis}
+.cv{width:22px;flex:none;color:var(--mute);font-size:12px;text-align:left;padding-left:6px}.cv.c1{width:12px;margin-left:10px;padding-left:0}
+.si .pin{width:12px;height:12px;margin-left:auto;color:var(--mute);opacity:.7}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="sim" id="sim">
+  <div id="desk">
+   <div class="icons"><button class="ico" id="pcIco" aria-label="This PC, nhấp đúp để mở">
+    <svg viewBox="0 0 64 56" width="56" height="49"><defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5fd8f5"/><stop offset="1" stop-color="#1f8fd1"/></linearGradient></defs><rect x="4" y="3" width="56" height="38" rx="4" fill="#dfe8f2" stroke="#9fb3c8"/><rect x="8" y="7" width="48" height="30" rx="2" fill="url(#mg)"/><path d="M24 44h16l2 8H22z" fill="#c4d2e0"/><rect x="16" y="51" width="32" height="3" rx="1.5" fill="#9fb3c8"/></svg>This PC</button></div>
+   <div class="hint">Nhấp đúp biểu tượng This PC để mở (hoặc chọn rồi nhấn Enter).</div>
+  </div>
+  <div class="bar"><span>⊞ Start</span><span id="tbx" hidden>🗂 File Explorer</span><span class="t" id="clk"></span></div>
+  <div id="ex" role="dialog" aria-label="File Explorer">
+   <div class="tb"><div class="tab"><span id="tabIc">🖥</span><span id="tabNm">This PC</span><span class="tx">✕</span></div><span class="plus">＋</span><div class="wcs"><span>—</span><span>☐</span><span class="xc" id="xClose" role="button" aria-label="Đóng File Explorer">✕</span></div></div>
+   <div class="nv"><span>←</span><span class="g">→</span><span>↑</span><span>⟳</span><div class="addr">🖥 › <b id="crumb">This PC</b> ›</div><div class="sr" id="srch">Search</div></div>
+   <div class="cb2"><span>⊕ New ⌄</span><span class="g">✂</span><span class="g">⧉</span><span class="g">📋</span><span class="g">✎</span><span class="g">⇪</span><span class="g">🗑</span><span>⇅ Sort ⌄</span><span>☰ View ⌄</span><span>⋯</span><span class="r">Details</span></div>
+   <div class="xb"><nav class="sd" id="sd"></nav><div class="ls" id="ls"></div></div>
+   <div class="stt" id="stt"></div>
+  </div>
+  <div class="cm" id="cm" role="menu">
+   <div class="mi x"><i>▦</i>View<span class="k">›</span></div>
+   <div class="mi x"><i>⇅</i>Sort by<span class="k">›</span></div>
+   <div class="mi x"><i>☰</i>Group by<span class="k">›</span></div>
+   <div class="sp"></div>
+   <div class="mi" id="miNew"><i>⊕</i>New<span class="k">›</span>
+    <div class="sub"><div class="mi" id="miFolder"><i>📁</i>Folder</div><div class="mi x2"><i>↗</i>Shortcut</div><div class="sp"></div><div class="mi x2"><i>W</i>Microsoft Word Document</div><div class="mi x2"><i>X</i>Microsoft Excel Worksheet</div><div class="mi x2"><i>T</i>Text Document</div></div></div>
+   <div class="mi x"><i>🔧</i>Properties<span class="k">Alt+Enter</span></div>
+   <div class="sp"></div>
+   <div class="mi x"><i>▮</i>Open in Terminal</div>
+   <div class="sp"></div>
+   <div class="mi x"><i>⤢</i>Show more options</div>
+  </div>
+ </div>
+ <aside class="task">
+  <div class="th"><h2>📋 Nhiệm vụ · Bài 2</h2><span id="prog"></span></div>
+  <div id="tasks"></div>
+  <div class="res" id="res"></div>
+  <div class="msg" id="msg" role="status"></div>
+  <button class="reset" id="reset">↺ Làm lại</button>
+ </aside>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const DOCS=[["Custom Office Templates","10/20/2026 12:11 PM","File folder","","d"],["ic3-main","11/15/2026 7:38 PM","File folder","","d"],["Danhsach.xlsx","11/5/2026 11:10 AM","Microsoft Excel Work...","21 KB","x"],["ic3-main.zip","11/15/2026 7:38 PM","Compressed (zipped)...","56 KB","z"],["slpv2_23.docx","11/15/2026 7:37 PM","Microsoft Word Docu...","15 KB","w"],["splv1_56.docx","11/16/2026 9:57 PM","Microsoft Word Docu...","15 KB","w"],["splv2_22.docx","11/15/2026 7:36 PM","Microsoft Word Docu...","15 KB","w"],["splv2_24.docx","11/15/2026 7:56 PM","Microsoft Word Docu...","16 KB","w"]];
+const mk=a=>a.map(r=>({n:r[0],d:r[1],t:r[2],s:r[3],k:r[4]}));
+const SV=b=>'<svg viewBox="0 0 16 16">'+b+'</svg>';
+const IC={
+ Home:SV('<path d="M8 1.5L1 8h2v6h10V8h2z" fill="#f08a3c"/><rect x="6.500" y="9.500" width="3" height="4.500" fill="#3b82d6"/>'),
+ Gallery:SV('<rect x="1" y="1.500" width="14" height="13" rx="2" fill="#2b7cd3"/><path d="M2 13l4-5 3 3 2-2 4 4z" fill="#fff"/><circle cx="11.500" cy="5" r="1.400" fill="#fff"/>'),
+ Downloads:SV('<path d="M8 2v8M4.500 7L8 10.500 11.500 7M3 14h10" stroke="#1fa971" stroke-width="1.800" fill="none"/>'),
+ Videos:SV('<rect x="1" y="2" width="14" height="12" rx="2" fill="#7b4bd1"/><path d="M6.500 5.500v5l4-2.500z" fill="#fff"/>'),
+ Music:SV('<circle cx="8" cy="8" r="7" fill="#ef6a4a"/><text x="8" y="12" text-anchor="middle" font-size="10" fill="#fff">♪</text>'),
+ Documents:SV('<rect x="3" y="1" width="10" height="14" rx="1.500" fill="#8ea2bb"/><path d="M5 5h6M5 8h6M5 11h4" stroke="#fff" stroke-width="1.200"/>'),
+ PC:SV('<rect x="1" y="2" width="14" height="9" rx="1.200" fill="#35b8e8" stroke="#1d7fb0"/><rect x="5" y="12.500" width="6" height="1.500" fill="#1d7fb0"/>'),
+ C:SV('<path d="M2 2h3v2.500H2zM6 2h3v2.500H6zM2 5.500h3V8H2zM6 5.500h3V8H6z" fill="#2b7cd3"/><rect x="1" y="9" width="14" height="5" rx="1" fill="#8d96a3"/>'),
+ D:SV('<rect x="1" y="6" width="14" height="6" rx="1.200" fill="#6f7a88"/><rect x="3" y="9" width="6" height="1.200" fill="#d5dae2"/>'),
+ Linux:'<span class="lx">🐧</span>'};
+const PIN='<svg class="pin" viewBox="0 0 16 16"><path d="M9.500 1.500l5 5-1.800.6-2.200 2.200.4 3.300-.9.900L7 9.800l-4.700 4.700-.8-.8L6.200 9 3.300 6l.9-.9 3.300.4 2.200-2.200z" fill="currentColor"/></svg>';
+const SIDE=[["Home","Home",0,0,""],["Gallery","Gallery",0,0,""],0,["Downloads","Downloads",0,1,""],["Videos","Videos",0,1,""],["Music","Music",0,1,""],["Documents","Documents",0,1,""],["Pictures","Gallery",0,1,""],0,["This PC","PC",0,0,"d"],["Local Disk (C:)","C",1,0,"r"],["New Volume (D:)","D",1,0,"r"],["Linux","Linux",0,0,"r"]];
+const TASKS=[
+ {t:"Mở This PC và vào thư mục Documents.",s:[["Nhấp đúp biểu tượng <b>This PC</b> trên màn hình."],["Nhấp vào <b>Documents</b> ở cột bên trái."]]},
+ {t:"Tạo thư mục mới tên Thumuc1.",s:[["Nhấp chuột phải vào <b>vùng trống</b> trong thư mục Documents.","💡 Trên điện thoại: nhấn giữ vào vùng trống."],["Chọn <b>New</b>."],["Chọn <b>Folder</b>."],["Sửa tên thành <b>Thumuc1</b>","💡 Chữ “New folder” đang được chọn sẵn, chỉ cần gõ <b>Thumuc1</b> (chữ T viết hoa, viết liền, không dấu) để thay thế."],["Nhấn <b>Enter</b>."]]}
+];
+let S;
+function fresh(){S={open:0,cur:"This PC",sel:null,edit:null,f:{docs:0,rc:0,nw:0,folder:0},items:{"This PC":mk([["Local Disk (C:)","","Local Disk","","v"],["New Volume (D:)","","Local Disk","","v"]]),Documents:mk([["Baitap1.docx","11/17/2026 9:15 AM","Microsoft Word Docu...","15 KB","w"]])}}}
+fresh();
+const list=()=>S.items[S.cur]||(S.items[S.cur]=[]);
+const now=()=>{const d=new Date();return d.toLocaleDateString("en-US")+" "+d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"})};
+const msg=(t,g)=>{$("msg").textContent=t||"";$("msg").className="msg"+(g?" good":"")};
+const isDone=()=>(S.items.Documents||[]).some(x=>x.made&&x!==S.edit&&x.n==="Thumuc1");
+function renderTasks(){
+  const r=$("ren"),live=S.edit&&S.edit.f==="Documents"&&r&&r.value.trim()==="Thumuc1";
+  const done=isDone();
+  const sd=[!!S.open,!!S.f.docs,!!S.f.rc,!!S.f.nw,!!S.f.folder,done||!!live,done];
+  const cur=sd.indexOf(false);let i=0;
+  $("prog").textContent="Đã xong "+sd.filter(Boolean).length+"/"+sd.length+" bước";
+  $("tasks").innerHTML=TASKS.map(T=>{
+    const ids=T.s.map(()=>i++),all=ids.every(k=>sd[k]);
+    return '<div class="tk"><div class="m"><span class="c'+(all?" ok":"")+'">'+(all?"✓":"")+'</span><span>'+T.t+'</span></div>'+T.s.map((s,j)=>{
+      const k=ids[j],cl=sd[k]?"done":k===cur?"cur":"next";
+      return '<div class="st '+cl+'"><span class="c'+(sd[k]?" ok":"")+'">'+(sd[k]?"✓":"")+'</span><span><b>'+(j+1)+'.</b> '+s[0]+'</span>'+(s[1]&&!sd[k]?'<div class="hint2">'+s[1]+'</div>':"")+'</div>';
+    }).join("")+'</div>';
+  }).join("");
+  $("res").className="res"+(done?" done":"");
+  $("res").textContent=done?"🎉 Hoàn thành! Thư mục Thumuc1 đã nằm trong Documents.":"";
+}
+const icon=k=>({d:"📁",w:'<b class="fi w">W</b>',x:'<b class="fi x">X</b>',z:'<b class="fi z">≣</b>',v:'<b class="fi v">▬</b>'})[k];
+function renderSide(){
+  $("sd").innerHTML=SIDE.map(s=>s?'<div class="si'+(S.cur===s[0]?" sel":"")+'" data-f="'+s[0]+'"><span class="cv'+(s[2]?" c1":"")+'">'+(s[4]==="d"?"⌄":s[4]?"›":"")+'</span>'+IC[s[1]]+'<span class="nm">'+s[0]+'</span>'+(s[3]?PIN:"")+'</div>':"<hr>").join("");
+}
+function renderList(){
+  const L=list(),a=L.slice();
+  if(S.cur!=="This PC")a.sort((p,q)=>((q.k==="d")-(p.k==="d"))||p.n.localeCompare(q.n,undefined,{sensitivity:"base"}));
+  $("tabNm").textContent=S.cur;$("tabIc").textContent=S.cur==="This PC"?"🖥":"📁";
+  $("crumb").textContent=S.cur;$("srch").textContent="Search "+S.cur;
+  $("stt").textContent=L.length+(L.length===1?" item":" items");
+  $("ls").innerHTML='<div class="g4 hd"><span>Name</span><span>Date modified</span><span>Type</span><span>Size</span></div>'+a.map(it=>'<div class="g4 fr'+(S.sel===it?" sel":"")+'" data-i="'+L.indexOf(it)+'"><span class="nmc">'+icon(it.k)+(S.edit===it?'<input id="ren" class="ren" spellcheck="false" autocomplete="off">':esc(it.n))+'</span><span>'+it.d+'</span><span>'+it.t+'</span><span>'+it.s+'</span></div>').join("");
+  renderSide();
+  if(S.edit){
+    const r=$("ren");r.value=S.edit.n;
+    r.addEventListener("input",renderTasks);
+    r.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();commit()}else if(e.key==="Escape"){r.value=S.edit.n;commit()}});
+    r.addEventListener("blur",commit);
+    setTimeout(()=>{r.focus();r.select()},0);
+  }
+}
+function startEdit(it){if(it.k==="v")return;it.f=S.cur;S.edit=it;S.sel=it;renderList();renderTasks()}
+function commit(){
+  const it=S.edit,r=$("ren");if(!it||!r)return;
+  const v=r.value.trim().replace(/[\\/:*?"<>|]/g,"")||it.n;
+  const dup=(S.items[it.f]||[]).some(x=>x!==it&&x.n.toLowerCase()===v.toLowerCase());
+  if(dup){msg("Đã có mục trùng tên, hãy đặt tên khác.");r.focus();return}
+  it.n=v;S.edit=null;renderList();renderTasks();
+  if(it.made&&it.f==="Documents")msg(v==="Thumuc1"?"Đã tạo thư mục Thumuc1 trong Documents!":"Tên chưa đúng, cần là Thumuc1 (chữ T viết hoa). Nhấp vào thư mục đã chọn (hoặc nhấn F2) để đổi tên lại.",v==="Thumuc1");
+}
+function openEx(){S.open=1;$("desk").style.display="none";$("ex").classList.add("on");$("tbx").hidden=false;renderList();renderTasks()}
+$("pcIco").addEventListener("dblclick",openEx);
+$("pcIco").addEventListener("click",e=>e.currentTarget.classList.add("sel"));
+$("pcIco").addEventListener("keydown",e=>{if(e.key==="Enter")openEx()});
+$("xClose").onclick=()=>{hideMenu();$("ex").classList.remove("on");$("desk").style.display="";$("tbx").hidden=true;$("pcIco").classList.remove("sel");msg("Đã đóng File Explorer. Nhấp đúp This PC để mở lại.")};
+$("sd").addEventListener("click",e=>{
+  const s=e.target.closest(".si");if(!s)return;
+  S.cur=s.dataset.f;S.sel=null;if(S.cur==="Documents")S.f.docs=1;
+  renderList();renderTasks();
+});
+$("ls").addEventListener("click",e=>{
+  const row=e.target.closest(".fr");
+  if(S.edit)return;
+  if(!row){S.sel=null;renderList();return}
+  const it=list()[+row.dataset.i];
+  if(S.sel===it&&!e.target.closest("input"))startEdit(it);else{S.sel=it;renderList()}
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape")hideMenu();
+  if(e.key==="F2"&&$("ex").classList.contains("on")&&S.sel&&!S.edit){e.preventDefault();startEdit(S.sel)}
+});
+/* context menu */
+function hideMenu(){$("cm").style.display="none"}
+function openMenu(e){
+  const sr=$("sim").getBoundingClientRect(),cm=$("cm");
+  cm.style.display="block";
+  const w=cm.offsetWidth,h=cm.offsetHeight;
+  let x=e.clientX-sr.left,y=e.clientY-sr.top;
+  if(x+w>sr.width-4)x=sr.width-w-4;
+  if(y+h>sr.height-4)y=sr.height-h-4;
+  cm.style.left=Math.max(4,x)+"px";cm.style.top=Math.max(4,y)+"px";
+  cm.classList.toggle("flip",x+w+232>sr.width);
+  cm.querySelectorAll(".mi.open").forEach(m=>m.classList.remove("open"));
+  if(S.cur==="Documents"){S.f.rc=1;msg("")}else msg("Hãy mở thư mục Documents trước khi nhấp chuột phải.");
+  renderTasks();
+}
+$("ls").addEventListener("contextmenu",e=>{
+  e.preventDefault();
+  if(S.edit)return;
+  if(e.target.closest(".fr")){msg("Hãy nhấp chuột phải vào vùng trống, không phải vào tập tin hay thư mục.");return}
+  if(e.target.closest(".hd"))return;
+  openMenu(e);
+});
+document.addEventListener("mousedown",e=>{if(!e.target.closest("#cm"))hideMenu()});
+$("miNew").addEventListener("click",e=>{
+  if(e.target.closest(".sub"))return;
+  S.f.nw=1;$("miNew").classList.toggle("open");renderTasks();
+});
+$("miFolder").addEventListener("click",e=>{
+  e.stopPropagation();hideMenu();
+  const L=list();let n="New folder",k=2;
+  while(L.some(x=>x.n.toLowerCase()===n.toLowerCase()))n="New folder ("+(k++)+")";
+  const it={n,d:now(),t:"File folder",s:"",k:"d",made:1,f:S.cur};
+  L.push(it);
+  if(S.cur==="Documents"){S.f.nw=1;S.f.folder=1;msg("")}else msg("Thư mục đã tạo, nhưng bài tập yêu cầu tạo trong Documents.");
+  startEdit(it);
+});
+document.querySelectorAll("#cm .x").forEach(m=>m.addEventListener("click",()=>{hideMenu();msg("Mục này chỉ để trang trí trong bài tập.")}));
+document.querySelectorAll("#cm .x2").forEach(m=>m.addEventListener("click",e=>{e.stopPropagation();hideMenu();msg("Em hãy chọn mục Folder để tạo thư mục.")}));
+$("reset").onclick=()=>{fresh();hideMenu();$("ex").classList.remove("on");$("desk").style.display="";$("tbx").hidden=true;$("pcIco").classList.remove("sel");msg("");renderTasks()};
+const tick=()=>{$("clk").textContent=new Date().toLocaleTimeString("vi-VN",{hour:"2-digit",minute:"2-digit"})};tick();setInterval(tick,30000);
+renderList();renderTasks();
+</script>
+</body>
+</html>
