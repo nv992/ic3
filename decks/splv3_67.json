@@ -1,0 +1,95 @@
+[
+ {
+  "text": "Em nên nhập www.companypro.net vào vị trí nào trên trình duyệt Web để có thể truy cập trực tiếp đến trang Web? Nhấp chuột vào hình ảnh để chọn vị trí phù hợp.",
+  "type": "single",
+  "image": "images/splv3_67_q1.png",
+  "answer": [
+   0
+  ],
+  "explain": "Địa chỉ (URL) của trang Web được nhập vào **thanh địa chỉ** (Vị trí A). Thanh tìm kiếm (Vị trí B) dùng để nhập từ khóa tìm kiếm trên Google.",
+  "options": [
+   "Vị trí A",
+   "Vị trí B"
+  ]
+ },
+ {
+  "text": "Em hãy cho biết, những bước nào liên quan đến việc lấy thông tin trực tuyến? Em hãy chọn Có nếu đây là bước bắt buộc và ngược lại chọn Không.",
+  "type": "tf",
+  "pairs": [
+   [
+    "Nhập URL.",
+    "Có"
+   ],
+   [
+    "Khởi động lại thiết bị.",
+    "Không"
+   ],
+   [
+    "Thông tin từ máy chủ trả về và hiển thị trên trình duyệt.",
+    "Có"
+   ],
+   [
+    "URL phân giải thành địa chỉ IP.",
+    "Có"
+   ]
+  ],
+  "choices": [
+   "Có",
+   "Không"
+  ],
+  "explain": "Để lấy thông tin trực tuyến: nhập URL, URL được phân giải thành địa chỉ IP, rồi máy chủ trả thông tin về và trình duyệt hiển thị. Khởi động lại thiết bị không phải là bước bắt buộc."
+ },
+ {
+  "text": "Em cần mô tả các bước xảy ra khi dùng trình duyệt Web của mình để truy cập www.companypro.net. Hoàn thành các câu dưới đây bằng cách chọn đúng tùy chọn cho mỗi câu.",
+  "type": "match",
+  "pairs": [
+   [
+    "Kết nối được thiết lập đến ______.",
+    "Máy chủ Web (Web Server)"
+   ],
+   [
+    "______ được gửi đến máy tính của người dùng.",
+    "Trang (Webpage)"
+   ],
+   [
+    "______ hiển thị trang Web.",
+    "Trình duyệt Web (Web Browser)"
+   ]
+  ],
+  "choices": [
+   "Máy chủ Web (Web Server)",
+   "Trang (Webpage)",
+   "Trình duyệt Web (Web Browser)",
+   "Địa chỉ IP"
+  ],
+  "explain": "Trình duyệt thiết lập kết nối đến máy chủ Web, máy chủ gửi trang Web (Webpage) về máy tính, sau đó trình duyệt Web hiển thị trang Web. \"Địa chỉ IP\" là lựa chọn gây nhiễu."
+ },
+ {
+  "text": "Khi tìm một nhà hàng bán thức ăn nhanh trên mạng, hành động nào sẽ có thể giúp ẩn vị trí của em?",
+  "type": "single",
+  "answer": [
+   0
+  ],
+  "explain": "Bật duyệt Web ở chế độ riêng tư giúp bảo vệ sự riêng tư của em khi duyệt Web (không lưu lịch sử, Cookies, dữ liệu trang Web). Xóa Cache, xóa Cookies hoặc chặn quảng cáo chỉ xử lý dữ liệu đã lưu hoặc quảng cáo, không bảo vệ khi đang duyệt.",
+  "options": [
+   "Bật duyệt Web ở chế độ riêng tư.",
+   "Xóa Cache (bộ đệm ẩn) sau khi ngừng duyệt Web.",
+   "Tải phần mềm chặn quảng cáo.",
+   "Xóa Cookies của em."
+  ]
+ },
+ {
+  "text": "Em hãy cho biết, thuật ngữ nào chỉ các bit dữ liệu nhỏ được thu thập bởi trang Web mà em truy cập?",
+  "type": "single",
+  "answer": [
+   0
+  ],
+  "explain": "Cookies là những tập tin nhỏ được lưu trên máy tính hoặc thiết bị khi em truy cập các trang Web, dùng để theo dõi hoạt động và lưu trữ một số thông tin của em.",
+  "options": [
+   "Cookies",
+   "Dữ kiện",
+   "Tấn công xâm nhập (Hacking)",
+   "Bảng tính"
+  ]
+ }
+]
