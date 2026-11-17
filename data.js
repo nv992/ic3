@@ -142,6 +142,12 @@ window.SITE_DATA = {
                       "name": "Trình duyệt Web",
                       "lessonUrl": "flashcard.html?d=splv3_67",
                       "reviewUrl": "quiz.html?q=splv3_67"
+                    },
+                    {
+                      "nums": "*",
+                      "name": "Bài tổng hợp",
+                      "lessonUrl": "",
+                      "reviewUrl": "quiz.html?q=splv3_1234567"
                     }
                   ]
                 }
