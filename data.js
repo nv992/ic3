@@ -54,6 +54,18 @@ window.SITE_DATA = {
                       "name": "Mini Game",
                       "lessonUrl": "",
                       "reviewUrl": "https://nv992.github.io/ic3/climbing"
+                    },
+                    {
+                      "nums": "*",
+                      "name": "Thực hành tạo tập tin",
+                      "lessonUrl": "",
+                      "reviewUrl": "https://nv992.github.io/ic3/word"
+                    },
+                    {
+                      "nums": "8",
+                      "name": "Thực hành tạo thư mục",
+                      "lessonUrl": "",
+                      "reviewUrl": "https://nv992.github.io/ic3/folder"
                     }
                   ]
                 }
