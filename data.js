@@ -94,6 +94,12 @@ window.SITE_DATA = {
                       "reviewUrl": "quiz.html?q=splv2_56"
                     },
                     {
+                      "nums": "7",
+                      "name": "Mạng",
+                      "lessonUrl": "flashcard.html?d=splv2_7",
+                      "reviewUrl": "quiz.html?q=splv2_7"
+                    },
+                    {
                       "nums": "**",
                       "name": "Bài tập tổng hợp",
                       "lessonUrl": "",
