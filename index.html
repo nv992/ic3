@@ -44,7 +44,7 @@ function render(){
   const sp=D.support;
   if(sp&&(sp.cardName||(sp.steps||[]).length)){
     const url=safeUrl(sp.cardUrl), vid=safeUrl(sp.videoUrl);
-    const card=`<${url?'a':'div'} class="k12"${url?` href="${esc(url)}" target="_blank" rel="noopener"`:''}>
+    const card=`<${url?'a':'div'} class="k12"${url?` href="${esc(url)}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer"`:''}>
         <div class="ico">${esc(sp.cardIcon||'📚')}</div><b>${esc(sp.cardName)}</b>
         ${url?'<span class="go">Bấm để mở <i>→</i></span>':''}</${url?'a':'div'}>`;
     const steps=(sp.steps||[]).map(t=>`<li><span>${md(t)}</span></li>`).join('');
