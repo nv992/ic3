@@ -14,15 +14,16 @@ button.dg{background:#d92d20}button.dg:disabled{background:#e9e3cf;color:#999;cu
 .pgr{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:10px 0}.pgr button{padding:6px 12px;min-width:36px;margin:0}.pgr button:disabled{opacity:.45;cursor:not-allowed}.pgr .pi{color:#666;font-size:14px;margin:0 8px 0 0}
 .rhd h3{margin:0}.rsum{margin:6px 0;color:#555;font-size:14px}button:disabled{opacity:.45;cursor:not-allowed}.rsum b{color:#222}td.n,th.n{text-align:right;white-space:nowrap}tr.top td{background:#fff7d6}
 .rhd{margin:0}details.rp>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:6px 14px;flex-wrap:wrap;font-size:16px;padding:2px 0;border-radius:8px}details.rp>summary::-webkit-details-marker{display:none}details.rp>summary::before{content:'▸';display:inline-block;width:1.2em;color:#2f6fed;font-weight:700}details.rp[open]>summary::before{content:'▾'}details.rp>summary:hover{background:#fffaf0}details.rp>summary .rs{color:#555;font-size:14px}details.rp[open]>summary{margin-bottom:6px}details.rp>summary>span:first-of-type{flex:1;min-width:200px}
+td.tt{background:#fff7d6}button.cpb{padding:2px 8px;font-size:12px;margin:0 0 0 4px;vertical-align:middle}td.gs,th.gs{border-left:2px solid #e3dcc3}table.sm th{background:#faf6e6}table.sm td.n b{font-variant-numeric:tabular-nums}
 @media print{.tabs,.noprint{display:none!important}body{background:#fff}.c{box-shadow:none;border:1px solid #ddd;page-break-inside:avoid}}
 #app.ro #del,#app.ro .rk,#app.ro #all{display:none!important}
 </style></head><body><main id="app"></main>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const sb=supabase.createClient(SB.url,SB.key),app=$('#app'),TYPES=['single','multi','fill','drag','match','connect','tf','sort'];
+const sb=supabase.createClient(SB.url,SB.key),app=$('#app'),TYPES=['single','multi','fill','drag','match','connect','sort','tf'];
 const rc=()=>Array.from({length:6},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.random()*32|0]).join('');
 // Chỉ hiện dữ liệu của N ngày gần nhất (tính cả hôm nay). Đổi số này nếu muốn dài/ngắn hơn.
-const KEEP_DAYS=28;   // 4 tuần
+const KEEP_DAYS=14;
 const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(KEEP_DAYS-1));return d};
 const dl=(name,rows)=>{const t='\ufeff'+rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download=name;a.click()};
 
@@ -43,11 +44,17 @@ async function shell(){
   $('#lo').onclick=async()=>{await sb.auth.signOut();login()};vRes();
 }
 
+// Cột `mode` (review = ôn tập, exam = kiểm tra) có thể chưa được thêm trong Supabase (xem them-cot-che-do.sql): kiểm tra 1 lần
+let MODEOK=null;
+async function hasMode(){if(MODEOK===null){try{MODEOK=!(await sb.from('attempts').select('mode').limit(1)).error}catch{MODEOK=false}}return MODEOK}
+const MLB=m=>m==='exam'?'📝 Kiểm tra':'📖 Ôn tập';
 async function vRes(){
+  const MO=await hasMode();
   const [{data:qz},{data:cl}]=await Promise.all([sb.from('quizzes').select('id,title'),sb.from('classes').select('id,school,name').order('school').order('name')]);
   $('#body').innerHTML=`<div class="c" id="rc"><div class="noprint"><button class="g" id="dp" title="Ngày trước">‹</button> <input type="date" id="rd"> <button class="g" id="dn2" title="Ngày sau">›</button> <button class="g" id="tdy" title="Xem kết quả của hôm nay">Hôm nay</button>
     <select id="fq"><option value="">Tất cả bài</option>${(qz||[]).map(q=>`<option value="${esc(q.id)}">${esc(q.title)}</option>`).join('')}</select>
     <select id="fc"><option value="">Tất cả lớp</option>${(cl||[]).map(c=>`<option value="${c.id}">${esc(c.school)} - ${esc(c.name)}</option>`).join('')}</select>
+    ${MO?'<select id="fm" title="Lọc theo chế độ làm bài"><option value="">Mọi chế độ</option><option value="review">📖 Ôn tập</option><option value="exam">📝 Kiểm tra</option></select>':''}
     <button id="ex" title="Xuất tất cả kết quả theo bộ lọc hiện tại (không chỉ trang này)">⬇ Xuất CSV</button>
     <button class="g" id="rpr">🖨 In</button>
     <button id="clr" class="g" title="Bỏ bộ lọc, xem tất cả các ngày trong khoảng cho phép">✕ Xóa lọc</button>
@@ -57,19 +64,19 @@ async function vRes(){
     <div class="pgr" id="pgb"></div></div>`;
   {const pad=n=>String(n).padStart(2,'0'),yl=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),w=weekStart();
     $('#rd').min=yl(w);$('#rd').max=yl(new Date());
-    $('#wk').textContent='📅 Chỉ hiển thị kết quả 4 tuần gần nhất (từ '+pad(w.getDate())+'/'+pad(w.getMonth()+1)+'/'+w.getFullYear()+').'}
-  const H=['Thời gian','Trường','Lớp','Mã HS','Học sinh','Bài','Điểm'],PS=50,COLS='id,created_at,quiz_id,student_id,student_name,score,total,classes(school,name)';
+    $('#wk').textContent='📅 Chỉ hiển thị kết quả '+KEEP_DAYS+' ngày gần nhất (từ '+pad(w.getDate())+'/'+pad(w.getMonth()+1)+'/'+w.getFullYear()+').'}
+  const H=['Thời gian','Trường','Lớp','Mã HS','Học sinh','Bài',...(MO?['Chế độ']:[]),'Điểm'],PS=50,COLS='id,created_at,quiz_id,student_id,student_name,score,total,'+(MO?'mode,':'')+'classes(school,name)';
   let rows=[],ids=[],pg=0,total=0;const sel=new Set();
   // mã học sinh: tải 1 lần theo id (không phụ thuộc quan hệ khóa ngoại); chưa có cột code thì để trống
   let CODE=null;
   const getCodes=async()=>{if(CODE)return CODE;CODE={};
     for(let f=0;;f+=1000){const {data,error}=await sb.from('students').select('id,code').order('id').range(f,f+999);if(error||!data)break;data.forEach(x=>CODE[x.id]=x.code||'');if(data.length<1000)break}
     return CODE};
-  const toRow=r=>[new Date(r.created_at).toLocaleString('vi-VN'),r.classes?.school||'',r.classes?.name||'',(CODE&&CODE[r.student_id])||'',r.student_name,r.quiz_id,r.score+'/'+r.total];
+  const toRow=r=>[new Date(r.created_at).toLocaleString('vi-VN'),r.classes?.school||'',r.classes?.name||'',(CODE&&CODE[r.student_id])||'',r.student_name,r.quiz_id,...(MO?[MLB(r.mode)]:[]),r.score+'/'+r.total];
   // câu truy vấn đã áp dụng bộ lọc (dùng cho cả hiển thị từng trang lẫn xuất CSV)
   const mk=()=>{
     let q=sb.from('attempts').select(COLS,{count:'exact'});
-    if($('#fq').value)q=q.eq('quiz_id',$('#fq').value);if($('#fc').value)q=q.eq('class_id',$('#fc').value);
+    if($('#fq').value)q=q.eq('quiz_id',$('#fq').value);if($('#fc').value)q=q.eq('class_id',$('#fc').value);if(MO&&$('#fm').value)q=q.eq('mode',$('#fm').value);
     // lọc theo ngày theo giờ địa phương (từ 00:00 của "Từ ngày" đến hết ngày "Đến ngày")
     {let lo=weekStart(),hi=null;const v=$('#rd').value;
       if(v){const d=new Date(v+'T00:00:00');if(d>lo)lo=d;hi=new Date(d);hi.setDate(hi.getDate()+1)}   // không bao giờ sớm hơn mốc N ngày
@@ -149,17 +156,20 @@ async function vRes(){
   $('#rd').onchange=()=>setDay($('#rd').value);
   $('#dp').onclick=()=>shift(-1);$('#dn2').onclick=()=>shift(1);
   $('#tdy').onclick=()=>setDay(ymd(new Date()));
-  $('#fq').onchange=$('#fc').onchange=()=>load(0);
-  $('#clr').onclick=()=>{$('#fq').value=$('#fc').value='';setDay('')};
+  $('#fq').onchange=$('#fc').onchange=()=>load(0);if(MO)$('#fm').onchange=()=>load(0);
+  $('#clr').onclick=()=>{$('#fq').value=$('#fc').value='';if(MO)$('#fm').value='';setDay('')};
   $('#rpr').onclick=()=>window.print();
   setDay(ymd(new Date()));   // mặc định: hôm nay
 }
 
-// ---------- Tổng hợp: mỗi lớp 1 bảng, hàng = học sinh, cột = bài, ô = điểm cao nhất ----------
+// ---------- Tổng hợp: mỗi lớp 1 bảng, hàng = học sinh, cột = bài (mỗi bài có cột Ôn tập + Kiểm tra), ô = điểm cao nhất ----------
 async function vSum(){
+  const MO=await hasMode();
   const nat=(a,b)=>String(a).localeCompare(String(b),'vi',{numeric:true});
-  $('#body').innerHTML=`<div class="c noprint"><select id="ss"></select> <select id="sc"></select> <button id="srf" title="Tải lại dữ liệu mới nhất, giữ nguyên bộ lọc">🔄 Làm mới</button> <button id="sex">⬇ Xuất CSV</button> <button class="g" id="spr">🖨 In</button> <button class="g" id="sop">▾ Mở tất cả</button> <button class="g" id="scol">▸ Thu gọn tất cả</button> <span id="sm"></span> <span id="sts" class="rsum"></span>
-    <div class="rsum">Điểm cao nhất của từng học sinh ở mỗi bài, tính trên các lần làm trong 4 tuần gần nhất.</div></div><div id="sout"></div>`;
+  const MD=r=>r.mode==='exam'?'exam':'review';   // bài làm cũ chưa có chế độ được tính là ôn tập
+  const LB={review:'📖 Ôn tập',exam:'📝 Kiểm tra',any:''},LBT={review:'Ôn tập',exam:'Kiểm tra',any:''};
+  $('#body').innerHTML=`<div class="c noprint"><select id="ss"></select> <select id="sc"></select> <button id="srf" title="Tải lại dữ liệu mới nhất, giữ nguyên bộ lọc">🔄 Làm mới</button> ${MO?'<select id="smd" title="Chọn cách hiển thị điểm"><option value="split">📖 + 📝 Ôn tập và Kiểm tra</option><option value="exam">📝 Chỉ Kiểm tra</option><option value="review">📖 Chỉ Ôn tập</option><option value="any">Gộp (điểm cao nhất)</option></select> ':''}<button id="sex">⬇ Xuất CSV</button> <button class="g" id="spr">🖨 In</button> <button class="g" id="sop">▾ Mở tất cả</button> <button class="g" id="scol">▸ Thu gọn tất cả</button> <button class="g" id="shq"></button> <span id="sm"></span> <span id="sts" class="rsum"></span>
+    <div class="rsum">Điểm cao nhất của từng học sinh ở mỗi bài, tính trên các lần làm trong ${KEEP_DAYS} ngày gần nhất. Bấm vào tiêu đề cột (Mã HS hoặc cột điểm) để sắp xếp riêng từng lớp.${MO?' Mỗi bài có 2 cột: <b>📖 Ôn tập</b> và <b>📝 Kiểm tra</b>. Học sinh được xếp theo tổng điểm Kiểm tra, bằng điểm thì xét tổng điểm Ôn tập.':''}</div><div id="hqp" hidden style="margin-top:8px;padding-top:8px;border-top:1px dashed #d9d4c3"></div></div><div id="sout"></div>`;
   $('#sm').textContent='Đang tải…';
   const pull=async(tb,cols,since)=>{const all=[];for(let f=0;;f+=1000){let q=sb.from(tb).select(cols);if(since)q=q.gte('created_at',since);const {data,error}=await q.order('id').range(f,f+999);if(error){$('#sm').className='bad';$('#sm').textContent='Lỗi: '+error.message;return null}all.push(...(data||[]));if(!data||data.length<1000)break}return all};
   let cl,st,at,qzr,QT;
@@ -167,7 +177,7 @@ async function vSum(){
     const r=await Promise.all([
       sb.from('classes').select('id,school,name').then(r=>r.data||[]),
       pull('students','id,class_id,name,code').then(async r=>r||(($('#sm').textContent=''),await pull('students','id,class_id,name'))),   // chưa có cột code thì lấy không mã
-      pull('attempts','id,quiz_id,class_id,student_id,student_name,score,total,created_at',weekStart().toISOString()),
+      pull('attempts','id,quiz_id,class_id,student_id,student_name,score,total,created_at'+(MO?',mode':''),weekStart().toISOString()),
       sb.from('quizzes').select('id,title').then(r=>r.data||[])]);
     if(!r[1]||!r[2])return false;
     [cl,st,at,qzr]=r;QT=Object.fromEntries(qzr.map(q=>[q.id,q.title]));return true};
@@ -178,60 +188,96 @@ async function vSum(){
   if(!await fetchAll())return;
   $('#sm').textContent='';
   fillSchools();stamp();
-  let SHOWN=[];const OPEN=new Set();let SORTC=0;   // sắp xếp theo mã HS: 0 = mặc định (tổng điểm cao→thấp), 1 = tăng dần, -1 = giảm dần
+  let SHOWN=[];const OPEN=new Set();const HK='ic3.sum.hiddenQuizzes',HIDDEN=new Set();   // các bài đang ẩn (lưu trong trình duyệt này)
+  try{JSON.parse(localStorage.getItem(HK)||'[]').forEach(x=>HIDDEN.add(x))}catch{}
+  const saveH=()=>{try{localStorage.setItem(HK,JSON.stringify([...HIDDEN]))}catch{}};
+  const SORT={};   // sắp xếp riêng từng lớp: SORT[idLớp]={k:'code'|'mãBài|chếĐộ', d:1 tăng | -1 giảm}; không có = mặc định (tổng điểm)
+  // chế độ hiển thị: split = 2 cột (Ôn tập + Kiểm tra) cho mỗi bài; exam / review = chỉ 1 loại; any = gộp điểm cao nhất
+  const VM=()=>MO?($('#smd').value||'split'):'any';
+  const colsOf=()=>{const v=VM();return v==='split'?['review','exam']:[v]};
   const fillCls=()=>{const sv=$('#ss').value,cv=$('#sc').value;
     const L=cl.filter(c=>!sv||c.school===sv).sort((a,b)=>nat(a.school,b.school)||nat(a.name,b.name));
     $('#sc').innerHTML='<option value="">Tất cả lớp</option>'+L.map(c=>`<option value="${c.id}"${c.id===cv?' selected':''}>${esc(sv?c.name:c.school+' - '+c.name)}</option>`).join('')};
+  const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/gi,'d').toLowerCase();   // bỏ dấu để gõ "khang" vẫn ra "KHANG"
+  const SQS={};   // nội dung ô tìm kiếm của từng lớp (giữ lại khi vẽ lại bảng)
   const build=()=>{
-    const sv=$('#ss').value,cv=$('#sc').value;
+    const sv=$('#ss').value,cv=$('#sc').value,v=VM(),cs=colsOf();
     return cl.filter(c=>(!sv||c.school===sv)&&(!cv||c.id===cv)).sort((a,b)=>nat(a.school,b.school)||nat(a.name,b.name)).map(c=>{
-      const A=at.filter(r=>r.class_id===c.id),qids=[...new Set(A.map(r=>r.quiz_id))].sort((x,y)=>nat(QT[x]||x,QT[y]||y));
+      const A=at.filter(r=>r.class_id===c.id&&!HIDDEN.has(r.quiz_id)&&(v==='exam'||v==='review'?MD(r)===v:true)),qids=[...new Set(A.map(r=>r.quiz_id))].sort((x,y)=>nat(QT[x]||x,QT[y]||y));
       const S=new Map();
       st.filter(x=>x.class_id===c.id).forEach(x=>S.set(x.id,{name:x.name,code:x.code||'',B:{}}));
       A.forEach(r=>{const k=r.student_id||'n:'+r.student_name;let o=S.get(k);if(!o)S.set(k,o={name:r.student_name||'(không rõ)',code:'',B:{}});
-        const b=o.B[r.quiz_id];if(!b||r.score>b.score)o.B[r.quiz_id]={score:r.score,total:r.total}});
-      const R=[...S.values()].map(r=>({
-        ...r,
-        sum:qids.reduce((sum,q)=>sum+(Number(r.B[q]?.score)||0),0)
-      }));
-      // Mặc định xếp tổng điểm từ cao xuống thấp (bằng điểm thì theo tên); bấm tiêu đề "Mã HS" để xếp theo mã.
-      R.sort(SORTC?((x,y)=>(!x.code-!y.code)||SORTC*nat(x.code,y.code)||nat(x.name,y.name)):((x,y)=>y.sum-x.sum||nat(x.name,y.name)));   // học sinh chưa có mã luôn xếp cuối
-      return {c,qids,R};
+        const b=o.B[r.quiz_id]??={},m=MD(r);
+        // lưu điểm cao nhất riêng cho từng chế độ (review / exam) và điểm gộp (any; bằng điểm thì ưu tiên Kiểm tra)
+        [MO?m:'any','any'].forEach(key=>{const p=b[key];if(!p||r.score>p.score||(r.score===p.score&&m==='exam'&&p.mode!=='exam'))b[key]={score:r.score,total:r.total,mode:m}})});
+      const R=[...S.values()].map(r=>{const sums={};['review','exam','any'].forEach(k=>sums[k]=qids.reduce((s,q)=>s+(Number(r.B[q]?.[k]?.score)||0),0));return {...r,sums}});
+      // Mặc định: xếp theo tổng điểm Kiểm tra (rồi Ôn tập) từ cao xuống thấp; bấm tiêu đề "Mã HS" để xếp theo mã.
+      const key=r=>v==='split'?[r.sums.exam,r.sums.review]:[r.sums[cs[0]],0];
+      let so=SORT[c.id];if(so&&so.k!=='code'){const [a,b]=so.k.split('|');if(!qids.includes(a)||!cs.includes(b))so=null}   // cột đã chọn không còn ở chế độ này → về mặc định
+      const val=r=>{const [a,b]=so.k.split('|'),x=r.B[a]?.[b];return x?Number(x.score):null};
+      R.sort(so?(so.k==='code'?((x,y)=>(!x.code-!y.code)||so.d*nat(x.code,y.code)||nat(x.name,y.name)):((x,y)=>{const a=val(x),b=val(y);return (a===null)-(b===null)||(a===null?0:so.d*(a-b))||nat(x.name,y.name)})):((x,y)=>{const a=key(x),b=key(y);return b[0]-a[0]||b[1]-a[1]||nat(x.name,y.name)}));   // chưa có điểm / chưa có mã luôn xếp cuối
+      return {c,qids,R,so};
     });
   };
-  const FQ={};   // chữ đang tìm của từng lớp (id lớp → chuỗi), giữ lại khi vẽ lại bảng
-  const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().trim();   // tìm không phân biệt dấu / hoa thường
-  const applyQ=d=>{const inp=d.querySelector('input.sq');if(!inp)return;const q=norm(inp.value),rows=[...d.querySelectorAll('tr[data-s]')];let n=0;
-    rows.forEach(tr=>{const ok=!q||tr.dataset.s.includes(q);tr.style.display=ok?'':'none';if(ok)n++});
-    const c=d.querySelector('.sqn');if(c)c.textContent=q?(n?n+'/'+rows.length+' học sinh':'Không tìm thấy'):''};
+  // lọc học sinh trong 1 lớp (chỉ ẩn/hiện dòng, không vẽ lại nên gõ liên tục không bị mất con trỏ)
+  const applyQ=d=>{
+    const qv=norm((SQS[d.dataset.k]||'').trim());let n=0;
+    d.querySelectorAll('tr[data-s]').forEach(tr=>{const ok=!qv||tr.dataset.s.includes(qv);tr.style.display=ok?'':'none';if(ok)n++});
+    const nm=d.querySelector('tr.nm');if(nm)nm.style.display=qv&&!n&&+d.dataset.n?'':'none';
+    d.querySelector('.rs').textContent=(qv?n+'/':'')+d.dataset.n+' học sinh · '+d.dataset.q+' bài'};
+  // Sao chép 1 cột điểm: mỗi học sinh đang hiện 1 dòng (chưa có điểm = dòng trống) để dán vào Excel/Google Sheets cho thẳng hàng
+  const copyText=async t=>{try{await navigator.clipboard.writeText(t);return true}catch{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();return ok}};
+  $('#sout').addEventListener('click',async e=>{
+    const b=e.target.closest('button[data-cp]');if(!b)return;
+    const d=b.closest('details'),g=SHOWN.find(x=>x.c.id===d.dataset.k);if(!g)return;
+    const [q,k]=b.dataset.cp.split('|'),trs=[...d.querySelectorAll('tr[data-s]')];
+    const t=g.R.filter((r,i)=>trs[i]&&trs[i].style.display!=='none').map(r=>r.B[q]?.[k]?.score??'').join('\n');
+    const ok=await copyText(t),old=b.textContent;b.textContent=ok?'✓':'✗';setTimeout(()=>b.textContent=old,1500)});
+  $('#sout').addEventListener('input',e=>{const i=e.target.closest('input.cq'),d=i&&i.closest('details');if(!d)return;SQS[d.dataset.k]=i.value;applyQ(d)});
   const draw=()=>{
-    const G=build();SHOWN=G;
+    const G=build(),cs=colsOf(),multi=cs.length>1,nc=cs.length;SHOWN=G;
     if(!G.length){$('#sout').innerHTML='<div class="c">Chưa có lớp nào.</div>';return}
-    $('#sout').innerHTML=G.map(g=>`<details class="c rp" data-k="${g.c.id}"${OPEN.has(g.c.id)||G.length===1?' open':''}><summary class="rhd"><span><b style="font-size:18px">${esc(g.c.school)} - ${esc(g.c.name)}</b></span><span class="rs">${g.R.length} học sinh · ${g.qids.length} bài</span></summary>
-      <div class="noprint" style="margin:8px 0"><input class="sq" data-k="${g.c.id}" type="search" placeholder="🔍 Tìm tên hoặc mã học sinh…" value="${esc(FQ[g.c.id]||'')}" style="width:100%;max-width:320px;box-sizing:border-box;margin:0"> <span class="sqn rsum"></span></div>
-      <div style="overflow-x:auto"><table><tr><th data-sk="1" style="cursor:pointer;user-select:none" title="Bấm để sắp xếp theo mã (tăng → giảm → mặc định)">Mã HS ${SORTC>0?'▲':SORTC<0?'▼':'⇅'}<th>Học sinh${g.qids.map(q=>`<th class="n" style="min-width:90px;white-space:normal">${esc(QT[q]||q)}<br><code style="font-weight:400;font-size:11px">${esc(q)}</code>`).join('')}</tr>${
-        g.R.map((r,i)=>`<tr data-s="${esc(norm(r.name+' '+(r.code||'')))}"><td>${esc(r.code||'')}<td>${esc(r.name)}${g.qids.map(q=>{const b=r.B[q];return b?`<td class="n" style="background:${Number(b.score)<800?'#fff0d6':'transparent'}"><b style="color:#222">${b.score}</b>`:`<td class="n" style="background:#fde8e7"><b style="color:#222">—</b>`}).join('')}</tr>`).join('')||'<tr><td colspan="9" style="color:#888">Lớp chưa có học sinh.</tr>'}</table></div></details>`).join('');
+    const AR=(g,k)=>g.so&&g.so.k===k?(g.so.d<0?'▼':'▲'):'⇅';
+    const HQB=q=>`<button class="g cpb noprint" data-hide="${esc(q)}" title="Ẩn bài này (hiện lại bằng nút 👁 Ẩn/hiện bài)">✕ Ẩn</button>`;
+    const CPB=(q,k)=>`<button class="g cpb noprint" data-cp="${q}|${k}" title="Sao chép cột điểm này (theo thứ tự học sinh đang hiện), dán thẳng vào Excel">📋</button>`;
+    const cell=(b,k,first)=>b?`<td class="n${first?' gs':''}" style="background:${Number(b.score)<800?'#fff0d6':'transparent'}"><b style="color:#222">${b.score}</b>${k==='any'&&MO&&b.mode==='exam'?' <small title="Điểm cao nhất đạt ở chế độ Kiểm tra">📝</small>':''}`:`<td class="n${first?' gs':''}" style="background:#fde8e7"><b style="color:#222">—</b>`;
+    $('#sout').innerHTML=G.map(g=>`<details class="c rp" data-k="${g.c.id}" data-n="${g.R.length}" data-q="${g.qids.length}"${OPEN.has(g.c.id)||G.length===1?' open':''}><summary class="rhd"><span><b style="font-size:18px">${esc(g.c.school)} - ${esc(g.c.name)}</b></span><span class="rs">${g.R.length} học sinh · ${g.qids.length} bài</span></summary>
+      <div class="noprint" style="margin:4px 0 8px"><input class="cq" type="search" placeholder="🔍 Tìm học sinh trong lớp này (tên hoặc mã)" size="34" autocomplete="off" value="${esc(SQS[g.c.id]||'')}"></div>
+      <div style="overflow-x:auto"><table class="sm"><tr><th rowspan="${multi?2:1}" data-sk="code" style="cursor:pointer;user-select:none" title="Bấm để sắp xếp theo mã (tăng → giảm → mặc định)">Mã HS ${AR(g,'code')}<th rowspan="${multi?2:1}">Học sinh${g.qids.map(q=>`<th class="n gs" colspan="${nc}" ${multi?'':` data-sk="${q}|${cs[0]}" title="Bấm để sắp xếp theo cột này"`} style="min-width:${nc*100+20}px;white-space:normal;text-align:${multi?'center':'right'}${multi?'':';cursor:pointer;user-select:none'}">${esc(QT[q]||q)}${multi?'':' '+AR(g,q+'|'+cs[0])}<br><code style="font-weight:400;font-size:11px">${esc(q)}</code><br>${HQB(q)}${multi?'':' '+CPB(q,cs[0])}`).join('')}</tr>${
+        multi?'<tr>'+g.qids.map(q=>cs.map((k,i)=>`<th class="n${i===0?' gs':''}" data-sk="${q}|${k}" title="Bấm để sắp xếp theo cột này" style="font-size:12px;white-space:nowrap;cursor:pointer;user-select:none">${LB[k]} ${AR(g,q+'|'+k)} ${CPB(q,k)}`).join('')).join('')+'</tr>':''}${
+        g.R.map(r=>`<tr data-s="${esc(norm(r.name+' '+(r.code||'')))}"><td>${esc(r.code||'')}<td>${esc(r.name)}${g.qids.map(q=>cs.map((k,i)=>cell(r.B[q]?.[k],k,i===0)).join('')).join('')}</tr>`).join('')||`<tr><td colspan="${2+g.qids.length*nc}" style="color:#888">Lớp chưa có học sinh.</tr>`}<tr class="nm" style="display:none"><td colspan="${2+g.qids.length*nc}" style="color:#888">Không tìm thấy học sinh nào khớp.</tr></table></div></details>`).join('');
     document.querySelectorAll('#sout details.rp').forEach(applyQ);
   };
-  $('#sout').addEventListener('input',e=>{const i=e.target.closest('input.sq');if(!i)return;FQ[i.dataset.k]=i.value;applyQ(i.closest('details'))});
-  $('#sout').addEventListener('click',e=>{const th=e.target.closest('th[data-sk]');if(th){SORTC=SORTC===0?1:SORTC===1?-1:0;draw();return}const sm=e.target.closest('summary'),d=sm&&sm.parentElement;if(d&&d.dataset.k)d.open?OPEN.delete(d.dataset.k):OPEN.add(d.dataset.k)});
+  $('#sout').addEventListener('click',e=>{const th=e.target.closest('th[data-sk]');if(th){if(e.target.closest('button'))return;const id=th.closest('details').dataset.k,k=th.dataset.sk,cur=SORT[id]&&SORT[id].k===k?SORT[id].d:0,nx=k==='code'?(cur===0?1:cur===1?-1:0):(cur===0?-1:cur===-1?1:0);   // mã: tăng→giảm→mặc định; cột điểm: cao→thấp→thấp→cao→mặc định
+      nx?SORT[id]={k,d:nx}:delete SORT[id];draw();return}const sm=e.target.closest('summary'),d=sm&&sm.parentElement;if(d&&d.dataset.k)d.open?OPEN.delete(d.dataset.k):OPEN.add(d.dataset.k)});
   const setAll=o=>document.querySelectorAll('#sout details.rp').forEach(d=>{d.open=o;o?OPEN.add(d.dataset.k):OPEN.delete(d.dataset.k)});
+  const hqLabel=()=>{$('#shq').textContent='👁 Ẩn/hiện bài'+(HIDDEN.size?' ('+HIDDEN.size+' đang ẩn)':'')};
+  const drawHQ=()=>{
+    const L=[...new Set([...at.map(r=>r.quiz_id),...HIDDEN])].sort((x,y)=>nat(QT[x]||x,QT[y]||y));
+    $('#hqp').innerHTML='<div style="margin-bottom:6px"><b>Chọn bài muốn hiển thị</b> <button class="g" id="hqa">Hiện tất cả</button><button class="g" id="hqn">Ẩn tất cả</button></div><div style="display:flex;flex-wrap:wrap;gap:6px 18px">'+
+      (L.map(q=>`<label style="font-size:14px;cursor:pointer;white-space:nowrap"><input type="checkbox" data-hq="${esc(q)}"${HIDDEN.has(q)?'':' checked'}> ${esc(QT[q]||q)}</label>`).join('')||'<span style="color:#888">Chưa có bài nào.</span>')+'</div>';
+    hqLabel()};
+  const hqApply=()=>{saveH();drawHQ();draw()};
+  $('#shq').onclick=()=>{$('#hqp').hidden=!$('#hqp').hidden};
+  $('#hqp').addEventListener('change',e=>{const c=e.target.closest('input[data-hq]');if(!c)return;c.checked?HIDDEN.delete(c.dataset.hq):HIDDEN.add(c.dataset.hq);saveH();hqLabel();draw()});
+  $('#hqp').addEventListener('click',e=>{const id=e.target.id;if(id==='hqa'){HIDDEN.clear();hqApply()}else if(id==='hqn'){at.forEach(r=>HIDDEN.add(r.quiz_id));hqApply()}});
+  $('#sout').addEventListener('click',e=>{const b=e.target.closest('button[data-hide]');if(!b)return;HIDDEN.add(b.dataset.hide);hqApply()});
   $('#sop').onclick=()=>setAll(true);$('#scol').onclick=()=>setAll(false);
   window.onbeforeprint=()=>document.querySelectorAll('#sout details.rp:not([open])').forEach(d=>{d.open=true;d.dataset.p='1'});
   window.onafterprint=()=>document.querySelectorAll('details.rp[data-p]').forEach(d=>{d.open=false;delete d.dataset.p});
-  $('#ss').onchange=()=>{fillCls();draw()};$('#sc').onchange=draw;
+  $('#ss').onchange=()=>{fillCls();draw()};$('#sc').onchange=draw;if(MO)$('#smd').onchange=draw;
   $('#sex').onclick=()=>{
-    const rows=[];
-    SHOWN.forEach(g=>{rows.push(['Trường','Lớp','Mã HS','Học sinh',...g.qids.map(q=>QT[q]||q),'Tổng điểm']);
-      g.R.forEach(r=>rows.push([g.c.school,g.c.name,r.code||'',r.name,...g.qids.map(q=>r.B[q]?r.B[q].score+'/'+r.B[q].total:''),r.sum]));rows.push([])});
+    const rows=[],cs=colsOf(),multi=cs.length>1;
+    SHOWN.forEach(g=>{rows.push(['Trường','Lớp','Mã HS','Học sinh',...cs.map(k=>multi?'Tổng '+LBT[k]:'Tổng điểm'),...g.qids.flatMap(q=>cs.map(k=>(QT[q]||q)+(multi?' - '+LBT[k]:'')))]);
+      g.R.forEach(r=>rows.push([g.c.school,g.c.name,r.code||'',r.name,...cs.map(k=>r.sums[k]),...g.qids.flatMap(q=>cs.map(k=>{const b=r.B[q]?.[k];return b?b.score+'/'+b.total+(k==='any'&&MO&&b.mode==='exam'?' (KT)':''):''}))]));rows.push([])});
     if(rows.length<2)return alert('Không có dữ liệu để xuất');
     dl('tong-hop.csv',rows);
   };
   $('#spr').onclick=()=>window.print();
   $('#srf').onclick=async()=>{const b=$('#srf');b.disabled=true;$('#sm').className='';$('#sm').textContent='Đang tải…';
     const ok=await fetchAll();b.disabled=false;if(!ok)return;
-    $('#sm').textContent='';fillSchools();fillCls();draw();stamp()};
-  fillCls();draw();
+    $('#sm').textContent='';fillSchools();fillCls();drawHQ();draw();stamp()};
+  fillCls();drawHQ();draw();
 }
 
 async function vCls(){
@@ -355,11 +401,7 @@ async function vQz(){
     const f=$('#fl').value;qLv=f;
     const list=Z.map((q,i)=>[q,i]).filter(([q])=>!f||(f==='__none'?!L[q.id]:L[q.id]===f));
     $('#qc').textContent=list.length+'/'+Z.length+' bài';
-    $('#ql2').innerHTML='<tr><th>Bài<th>Level<th>Ghi chú<th>Số câu<th>Link dán vào admin (data.js)<th></tr>'+(list.length?list.map(([q,i])=>`<tr><td>${esc(q.title)}<td>${esc(L[q.id]||'')}<td style="white-space:pre-wrap;color:#666">${esc(N[q.id]||'')}<td>${q.questions.length}<td><code>quiz.html?q=${esc(q.id)}</code><td><button class="g" data-dl="${i}" title="Tải file JSON câu hỏi của bài này">Tải JSON</button><button class="g" data-ed="${i}">Sửa</button><button class="g" data-mg="${i}" title="Chuyển bài làm của bài này sang bài khác">Gộp</button><button class="g" data-rm="${i}">Xóa</button></tr>`).join(''):'<tr><td colspan="6" style="color:#888">Không có bài nào.</tr>');
-    document.querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>{
-      const q=Z[b.dataset.dl],u=URL.createObjectURL(new Blob([JSON.stringify(q.questions,null,1)],{type:'application/json'})),a=document.createElement('a');
-      a.href=u;a.download=(q.id||'questions').replace(/[^\w.-]+/g,'_')+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
-    });
+    $('#ql2').innerHTML='<tr><th>Bài<th>Level<th>Ghi chú<th>Số câu<th>Link dán vào admin (data.js)<th></tr>'+(list.length?list.map(([q,i])=>`<tr><td>${esc(q.title)}<td>${esc(L[q.id]||'')}<td style="white-space:pre-wrap;color:#666">${esc(N[q.id]||'')}<td>${q.questions.length}<td><code>quiz.html?q=${esc(q.id)}</code><td><button class="g" data-ed="${i}">Sửa</button><button class="g" data-mg="${i}" title="Chuyển bài làm của bài này sang bài khác">Gộp</button><button class="g" data-rm="${i}">Xóa</button></tr>`).join(''):'<tr><td colspan="6" style="color:#888">Không có bài nào.</tr>');
     document.querySelectorAll('[data-ed]').forEach(b=>b.onclick=()=>{const q=Z[b.dataset.ed];EDIT=q.id;$('#qi').value=q.id;$('#qt').value=q.title;$('#ql').value=L[q.id]||'';$('#qd').value=N[q.id]||'';$('#qj').value=JSON.stringify(q.questions,null,1);scrollTo(0,0)});
     document.querySelectorAll('[data-mg]').forEach(b=>b.onclick=async()=>{
       const q=Z[b.dataset.mg],others=Z.filter(x=>x.id!==q.id);
