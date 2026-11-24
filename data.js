@@ -150,10 +150,16 @@ window.SITE_DATA = {
                       "reviewUrl": "quiz.html?q=splv3_67"
                     },
                     {
+                      "nums": "8",
+                      "name": "Xử lý sự cố về công nghệ",
+                      "lessonUrl": "flashcard.html?d=splv3_8",
+                      "reviewUrl": "quiz.html?q=splv3_8"
+                    },
+                    {
                       "nums": "*",
                       "name": "Bài tổng hợp",
                       "lessonUrl": "",
-                      "reviewUrl": "quiz.html?q=splv3_1234567"
+                      "reviewUrl": "quiz.html?q=splv3_12345678"
                     }
                   ]
                 }
@@ -179,7 +185,7 @@ window.SITE_DATA = {
       "Chọn **“Câu hỏi đánh giá”** để làm bài."
     ],
     "passwordLabel": "Mật khẩu chung:",
-    "password": "Vvt@13579",
+    "password": "",
     "videoText": "Xem video hướng dẫn tại đây",
     "videoUrl": ""
   }
