@@ -41,7 +41,13 @@ window.SITE_DATA = {
                       "nums": "5, 6",
                       "name": "Tập tin và Thư mục",
                       "lessonUrl": "flashcard.html?d=splv1_56",
-                      "reviewUrl": ""
+                      "reviewUrl": "https://nv992.github.io/ic3/file_folder"
+                    },
+                    {
+                      "nums": "7",
+                      "name": "Thiết bị di động",
+                      "lessonUrl": "flashcard.html?d=splv1_7",
+                      "reviewUrl": "quiz.html?q=splv1_7"
                     },
                     {
                       "nums": "*",
@@ -50,13 +56,7 @@ window.SITE_DATA = {
                       "reviewUrl": "quiz.html?q=splv1_123456"
                     },
                     {
-                      "nums": "*",
-                      "name": "Thực hành tạo tập tin và thư mục",
-                      "lessonUrl": "",
-                      "reviewUrl": "https://nv992.github.io/ic3/file_folder"
-                    },
-                    {
-                      "nums": "*",
+                      "nums": "**",
                       "name": "Mini Game",
                       "lessonUrl": "",
                       "reviewUrl": "https://nv992.github.io/ic3/climbing"
@@ -98,6 +98,12 @@ window.SITE_DATA = {
                       "name": "Mạng",
                       "lessonUrl": "flashcard.html?d=splv2_7",
                       "reviewUrl": "quiz.html?q=splv2_7"
+                    },
+                    {
+                      "nums": "8",
+                      "name": "Kết nối các thiết bị",
+                      "lessonUrl": "flashcard.html?d=splv2_8",
+                      "reviewUrl": "quiz.html?q=splv2_8"
                     },
                     {
                       "nums": "**",
